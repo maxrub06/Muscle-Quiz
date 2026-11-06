@@ -33,6 +33,10 @@ canvas.arena-canvas {
   height: 0;
   flex: 1;
 }
+#rankHeading,
+#rank li {
+  text-shadow: 0 1px 3px #020617, 0 0 6px #020617;
+}
 </style>
 </head>
 <body class="min-h-screen bg-slate-900 text-slate-100">
@@ -50,6 +54,10 @@ canvas.arena-canvas {
     </div>
     <div class="arena-canvas-wrap relative overflow-hidden rounded-xl border border-slate-700 bg-slate-950">
       <canvas id="arena" class="arena-canvas block w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400" tabindex="0" role="img" aria-label="Muscario game arena. Use arrow keys or WASD, or point and hold on the arena to move. Eat protein orbs and smaller muscles."></canvas>
+      <div class="pointer-events-none absolute bottom-2 left-2 right-2 z-10">
+        <h2 id="rankHeading" class="mb-1 text-xs font-bold text-slate-300">Arena leaders</h2>
+        <ol id="rank" class="grid grid-cols-3 gap-1 text-xs" aria-labelledby="rankHeading" aria-live="polite"></ol>
+      </div>
       <div id="overlay" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/75 px-6 text-center">
         <p id="overlayTitle" class="text-3xl font-extrabold text-white">Get swole!</p>
         <p id="overlayMessage" class="mt-2 max-w-sm text-sm text-slate-300">Play live against people in the shared online arena. Eat protein and smaller muscles to grow.</p>
@@ -59,16 +67,6 @@ canvas.arena-canvas {
       </div>
     </div>
     <p id="status" class="mt-3 min-h-10 text-center text-sm text-slate-300" aria-live="polite">Join the online arena, then invite other players to meet you there.</p>
-  </section>
-</main>
-
-<main class="mx-auto max-w-md px-4 pb-4 sm:px-6 sm:pb-6">
-  <section class="rounded-2xl border border-slate-700 bg-slate-800/80 p-4" aria-labelledby="rankHeading">
-    <div class="mb-3 flex items-center justify-between">
-      <h2 id="rankHeading" class="font-bold">Arena leaders</h2>
-      <span class="text-xs text-slate-500">Eat smaller players · Run from bigger ones</span>
-    </div>
-    <ol id="rank" class="grid gap-2 text-sm" aria-live="polite"></ol>
   </section>
 </main>
 
@@ -342,19 +340,21 @@ canvas.arena-canvas {
         isPlayer: false
       })),
       ...bots.map(bot => ({ name: bot.name, mass: bot.mass, color: bot.color, isPlayer: false }))
-    ].sort((a, b) => b.mass - a.mass).slice(0, 5);
+    ].sort((a, b) => b.mass - a.mass).slice(0, 3);
     rankElement.replaceChildren(...leaders.map((entry, index) => {
       const row = document.createElement('li');
-      row.className = `flex items-center justify-between rounded-lg px-3 py-2 ${entry.isPlayer ? 'border border-amber-400/40 bg-amber-400/10' : 'bg-slate-900/70'}`;
+      row.className = `min-w-0 rounded-lg px-2 py-1 ${entry.isPlayer ? 'border border-amber-400/40 bg-amber-400/10' : 'bg-slate-900/70'}`;
       const label = document.createElement('span');
-      label.className = 'flex items-center gap-2';
+      label.className = 'flex min-w-0 items-center gap-1';
       const dot = document.createElement('span');
-      dot.className = 'h-2.5 w-2.5 rounded-full';
+      dot.className = 'h-2 w-2 shrink-0 rounded-full';
       dot.style.backgroundColor = entry.color;
       const name = document.createElement('span');
+      name.className = 'truncate';
       name.textContent = `${index + 1}. ${entry.name}`;
       label.append(dot, name);
       const score = document.createElement('strong');
+      score.className = 'ml-3 block text-right text-slate-300';
       score.textContent = Math.floor(entry.mass);
       row.append(label, score);
       return row;
