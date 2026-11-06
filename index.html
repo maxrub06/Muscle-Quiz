@@ -25,43 +25,6 @@ dialog::backdrop {
   .level-card { transition: none; }
   .level-card:hover, .level-card:active { transform: none; }
 }
-@media (max-height: 760px) {
-  html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
-  main {
-    height: 100vh;
-    height: 100dvh;
-    min-height: 0;
-    justify-content: center;
-    padding: 8px 16px;
-  }
-  main > header { margin-bottom: 12px; }
-  main > header > div { width: 48px !important; height: 48px !important; margin-bottom: 8px !important; }
-  main > header > p { margin-bottom: 4px !important; }
-  main > header h1 { font-size: 30px !important; line-height: 1.1 !important; }
-  main > section > div { margin-bottom: 8px !important; }
-  main > section > nav { gap: 8px !important; }
-  main > section .level-card { gap: 12px !important; padding: 10px 12px !important; }
-  main > section .level-card > span:first-child { padding: 6px 10px !important; }
-  main > section .level-card > span:nth-child(2) > span:first-child { font-size: 16px !important; line-height: 1.25 !important; }
-  main > section .level-card > span:nth-child(2) > span:nth-child(2) { margin-top: 2px !important; font-size: 12px !important; line-height: 1.25 !important; }
-  main > a[href="flappy-muscles.html"] { margin-top: 12px !important; padding: 10px 12px !important; }
-  main > a[href="flappy-muscles.html"] > span > span:nth-child(2) { font-size: 16px !important; line-height: 1.25 !important; }
-  main > a[href="flappy-muscles.html"] > span > span:nth-child(3) { margin-top: 2px !important; font-size: 12px !important; line-height: 1.25 !important; }
-  main > nav { margin-top: 12px !important; gap: 8px !important; }
-  main > nav > a { padding: 8px !important; }
-  main > nav > a > span:first-child { margin-bottom: 0 !important; font-size: 16px !important; line-height: 1.25 !important; }
-  main > nav > a > span:nth-child(3) { margin-top: 2px !important; }
-}
-@media (max-height: 600px) {
-  main { padding-top: 4px; padding-bottom: 4px; }
-  main > header { margin-bottom: 8px; }
-  main > header > div { width: 40px !important; height: 40px !important; margin-bottom: 4px !important; }
-  main > section > div { margin-bottom: 6px !important; }
-  main > section > nav, main > nav { gap: 6px !important; }
-  main > section .level-card { padding: 7px 10px !important; }
-  main > a[href="flappy-muscles.html"] { margin-top: 8px !important; padding: 7px 10px !important; }
-  main > nav { margin-top: 8px !important; }
-}
 </style>
 </head>
 <body class="min-h-screen bg-slate-900 text-slate-100">
