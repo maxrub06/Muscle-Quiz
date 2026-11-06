@@ -274,8 +274,8 @@ canvas { touch-action: none; }
       await sendPresence('start');
     } catch (error) {
       overlayTitle.textContent = 'Could not join the arena';
-      overlayMessage.textContent = 'Check your connection and make sure the game is uploaded with api/muscario.php and the MySQL tables are installed.';
-      statusElement.textContent = 'Muscario needs its online PHP and MySQL server to start.';
+      overlayMessage.textContent = 'Check your connection.';
+      statusElement.textContent = 'Muscario needs internet connection to start.';
       startButton.textContent = 'Try again';
       startButton.disabled = false;
       return;

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'muscle-quest-v5';
+const CACHE_NAME = 'muscle-quest-v6';
 const APP_SHELL = [
   './',
   './index.html',
