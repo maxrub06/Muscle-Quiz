@@ -6,41 +6,235 @@
 <meta name="theme-color" content="#0f172a">
 <link rel="icon" href="app-icon.svg" type="image/svg+xml">
 <title>Muscario – Muscle Quest</title>
-<script src="https://cdn.tailwindcss.com"></script>
 <style>
+* { box-sizing: border-box; }
 html, body {
   height: 100%;
+  margin: 0;
   overflow: hidden;
   overscroll-behavior: none;
 }
-body { background-image: radial-gradient(ellipse at 50% 0%, rgb(167 139 250 / 12%), transparent 48%); }
+body {
+  background-color: #0f172a;
+  background-image: radial-gradient(ellipse at 50% 0%, rgb(167 139 250 / 12%), transparent 48%);
+  color: #f1f5f9;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
 main.game-layout {
   display: flex;
+  width: 100%;
+  max-width: 28rem;
   height: 100vh;
   height: 100dvh;
   flex-direction: column;
+  margin: 0 auto;
+  padding: 1rem;
+}
+header {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+header a {
+  color: #94a3b8;
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+header a:hover { color: #fff; }
+header > span {
+  border-radius: 9999px;
+  background: rgb(139 92 246 / 15%);
+  color: #c4b5fd;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 0.25rem 0.75rem;
+  text-transform: uppercase;
 }
 section.arena-panel {
   display: flex;
   min-height: 0;
   flex: 0.9;
   flex-direction: column;
+  margin-top: 0.5rem;
+  border: 1px solid #334155;
+  border-radius: 1rem;
+  background: #1e293b;
+  padding: 0.75rem;
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 20%);
 }
-.arena-canvas-wrap {
+.stats-bar {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  padding: 0 0.25rem;
+  color: #94a3b8;
+  font-size: 0.875rem;
+}
+.stats-bar strong {
+  margin-left: 0.25rem;
+  color: #fff;
+  font-size: 1.125rem;
+}
+#onlineCount { color: #7dd3fc; }
+#best { color: #fcd34d; }
+.arena-canvas-wrap {
+  position: relative;
+  display: flex;
+  overflow: hidden;
   min-height: 0;
   flex: 1;
   flex-direction: column;
+  border: 1px solid #334155;
+  border-radius: 0.75rem;
+  background: #020617;
 }
-canvas { touch-action: none; }
+.rank-panel {
+  position: absolute;
+  z-index: 10;
+  right: 0.5rem;
+  bottom: 0.5rem;
+  left: 0.5rem;
+  pointer-events: none;
+}
 canvas.arena-canvas {
+  display: block;
+  width: 100%;
   min-height: 0;
   height: 0;
   flex: 1;
+  touch-action: none;
 }
 #rankHeading,
 #rank li {
   text-shadow: 0 1px 3px #020617, 0 0 6px #020617;
+}
+#rankHeading {
+  margin: 0 0 0.25rem;
+  color: #cbd5e1;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+#rank {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  font-size: 0.75rem;
+  list-style: none;
+}
+#rank li {
+  min-width: 0;
+  border-radius: 0.5rem;
+  background: rgb(15 23 42 / 70%);
+  padding: 0.25rem 0.5rem;
+}
+#rank li.rank-entry-player {
+  border: 1px solid rgb(251 191 36 / 40%);
+  background: rgb(251 191 36 / 10%);
+}
+.rank-label {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.25rem;
+}
+.rank-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+}
+.rank-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rank-mass {
+  display: block;
+  margin-left: 0.75rem;
+  color: #cbd5e1;
+  text-align: right;
+}
+#overlay {
+  position: absolute;
+  z-index: 20;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgb(2 6 23 / 75%);
+  padding: 1.5rem;
+  text-align: center;
+}
+#overlay.hidden { display: none; }
+#overlayTitle {
+  margin: 0;
+  color: #fff;
+  font-size: 1.875rem;
+  font-weight: 800;
+}
+#overlayMessage {
+  max-width: 24rem;
+  margin: 0.5rem 0 0;
+  color: #cbd5e1;
+  font-size: 0.875rem;
+}
+#playerName {
+  width: 100%;
+  max-width: 20rem;
+  margin-top: 0.5rem;
+  border: 1px solid #475569;
+  border-radius: 0.75rem;
+  background: #0f172a;
+  padding: 0.75rem 1rem;
+  color: #fff;
+  font: inherit;
+  text-align: center;
+}
+#playerName:focus-visible,
+#startButton:focus-visible,
+canvas:focus-visible {
+  outline: 2px solid #a78bfa;
+  outline-offset: 2px;
+}
+#overlay label {
+  width: 100%;
+  max-width: 20rem;
+  margin-top: 1rem;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-align: left;
+  text-transform: uppercase;
+}
+#startButton {
+  margin-top: 1.25rem;
+  border: 0;
+  border-radius: 0.75rem;
+  background: #8b5cf6;
+  padding: 0.75rem 1.75rem;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+#startButton:hover { background: #a78bfa; }
+#startButton:disabled { cursor: wait; opacity: 0.7; }
+#status {
+  min-height: 2.5rem;
+  margin: 0.75rem 0 0;
+  color: #cbd5e1;
+  font-size: 0.875rem;
+  text-align: center;
 }
 </style>
 </head>
@@ -52,26 +246,26 @@ canvas.arena-canvas {
   </header>
 
   <section class="arena-panel mt-2 rounded-2xl border border-slate-700 bg-slate-800 p-3 shadow-xl shadow-black/20" aria-label="Muscario arena">
-    <div class="mb-3 flex items-center justify-between px-1 text-sm">
-      <span class="text-slate-400">Muscle mass <strong id="mass" class="ml-1 text-lg text-white">12</strong></span>
-      <span class="text-slate-400">Players <strong id="onlineCount" class="ml-1 text-lg text-sky-300">0</strong></span>
-      <span class="text-slate-400">Best <strong id="best" class="ml-1 text-lg text-amber-300">12</strong></span>
+    <div class="stats-bar">
+      <span>Muscle mass <strong id="mass">12</strong></span>
+      <span><span id="playersLabel">Players</span> <strong id="onlineCount">0</strong></span>
+      <span>Best <strong id="best">12</strong></span>
     </div>
     <div class="arena-canvas-wrap relative overflow-hidden rounded-xl border border-slate-700 bg-slate-950">
       <canvas id="arena" class="arena-canvas block w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400" tabindex="0" role="img" aria-label="Muscario game arena. Use arrow keys or WASD, or point and hold on the arena to move. Eat protein orbs and smaller muscles."></canvas>
-      <div class="pointer-events-none absolute bottom-2 left-2 right-2 z-10">
-        <h2 id="rankHeading" class="mb-1 text-xs font-bold text-slate-300">Arena leaders</h2>
-        <ol id="rank" class="grid grid-cols-3 gap-1 text-xs" aria-labelledby="rankHeading" aria-live="polite"></ol>
+      <div class="rank-panel">
+        <h2 id="rankHeading">Arena leaders</h2>
+        <ol id="rank" aria-labelledby="rankHeading" aria-live="polite"></ol>
       </div>
       <div id="overlay" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/75 px-6 text-center">
-        <p id="overlayTitle" class="text-3xl font-extrabold text-white">Get swole!</p>
-        <p id="overlayMessage" class="mt-2 max-w-sm text-sm text-slate-300">Play live against people in the shared online arena. Eat protein and smaller muscles to grow.</p>
-        <label for="playerName" class="mt-4 w-full max-w-xs text-left text-xs font-bold uppercase tracking-wider text-slate-400">Your arena name</label>
-        <input id="playerName" type="text" maxlength="20" autocomplete="nickname" class="mt-2 w-full max-w-xs rounded-xl border border-slate-600 bg-slate-900 px-4 py-3 text-center text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400" placeholder="Muscle name">
-        <button id="startButton" type="button" class="mt-5 rounded-xl bg-violet-500 px-7 py-3 font-bold text-white transition hover:bg-violet-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-300">Start game</button>
+        <p id="overlayTitle">Get swole!</p>
+        <p id="overlayMessage">Try the shared online arena. If it is unavailable, you can still play against bots offline.</p>
+        <label for="playerName">Your arena name</label>
+        <input id="playerName" type="text" maxlength="20" autocomplete="nickname" placeholder="Muscle name">
+        <button id="startButton" type="button">Start game</button>
       </div>
     </div>
-    <p id="status" class="mt-3 min-h-10 text-center text-sm text-slate-300" aria-live="polite">Join the online arena, then invite other players to meet you there.</p>
+    <p id="status" aria-live="polite">Join the online arena, then invite other players to meet you there.</p>
   </section>
 </main>
 
@@ -80,6 +274,7 @@ canvas.arena-canvas {
   const canvas = document.getElementById('arena');
   const context = canvas.getContext('2d');
   const massElement = document.getElementById('mass');
+  const playersLabel = document.getElementById('playersLabel');
   const onlineCountElement = document.getElementById('onlineCount');
   const bestElement = document.getElementById('best');
   const rankElement = document.getElementById('rank');
@@ -113,6 +308,7 @@ canvas.arena-canvas {
   };
   let onlinePlayers = [];
   let state = 'ready';
+  let gameMode = null;
   let best = 12;
   let viewWidth = 0;
   let viewHeight = 0;
@@ -348,28 +544,33 @@ canvas.arena-canvas {
   async function startGame() {
     startButton.disabled = true;
     startButton.textContent = 'Connecting…';
+    gameMode = 'connecting';
     player.name = playerNameInput.value.trim().slice(0, 20) || 'Muscle';
     playerNameInput.value = player.name;
     try { localStorage.setItem(playerNameKey, player.name); }
     catch (error) { console.warn('Could not save the Muscario player name:', error); }
     reset();
+    while (networkBusy) await new Promise(resolve => setTimeout(resolve, 25));
     try {
       await sendPresence('start');
+      gameMode = 'online';
     } catch (error) {
-      overlayTitle.textContent = 'Could not join the arena';
-      overlayMessage.textContent = 'Check your connection.';
-      statusElement.textContent = 'Muscario needs internet connection to start.';
-      startButton.textContent = 'Try again';
-      startButton.disabled = false;
-      return;
+      gameMode = 'offline';
+      onlinePlayers = [];
+      overlayTitle.textContent = 'Offline mode';
+      overlayMessage.textContent = 'The online arena is unavailable. Play against bots; online multiplayer will be tried again next game.';
+      statusElement.textContent = 'Offline · Playing against bots. Your best mass is saved on this device.';
+      updateHud();
     }
     state = 'playing';
     overlay.classList.add('hidden');
     startButton.textContent = 'Play again';
     startButton.disabled = false;
-    heartbeatTimer = setInterval(() => {
-      if (state === 'playing') sendPresence('heartbeat').catch(() => {});
-    }, 1000);
+    if (gameMode === 'online') {
+      heartbeatTimer = setInterval(() => {
+        if (state === 'playing') sendPresence('heartbeat').catch(() => {});
+      }, 1000);
+    }
     canvas.focus({ preventScroll: true });
   }
 
@@ -380,20 +581,28 @@ canvas.arena-canvas {
       clearInterval(heartbeatTimer);
       heartbeatTimer = null;
     }
-    sendPresence('leave').catch(() => {});
+    if (gameMode === 'online') sendPresence('leave').catch(() => {});
     saveBest();
     overlayTitle.textContent = 'Muscle down!';
-    overlayMessage.textContent = `You grew to ${Math.floor(player.mass)} mass. Eat protein and smaller muscles to beat your best.`;
+    overlayMessage.textContent = gameMode === 'offline'
+      ? `You grew to ${Math.floor(player.mass)} mass. Your best is saved on this device. Try again to check the online arena.`
+      : `You grew to ${Math.floor(player.mass)} mass. Eat protein and smaller muscles to beat your best.`;
     startButton.textContent = 'Play again';
     startButton.disabled = false;
     overlay.classList.remove('hidden');
-    statusElement.textContent = 'You were eaten. Grow stronger and jump back into the online arena!';
+    statusElement.textContent = gameMode === 'offline'
+      ? 'Offline game over · Your best mass is saved on this device.'
+      : 'You were eaten. Grow stronger and jump back into the online arena!';
     updateHud();
   }
 
   function updateHud() {
     player.radius = radiusFor(player.mass);
     massElement.textContent = Math.floor(player.mass);
+    if (playersLabel) {
+      playersLabel.textContent = gameMode === 'offline' ? 'Bots' : 'Players';
+      if (gameMode === 'offline') onlineCountElement.textContent = String(bots.length);
+    }
     const leaders = [
       { name: `You · ${player.name}`, mass: player.mass, color: player.color, isPlayer: true },
       ...onlinePlayers.map(other => ({
@@ -406,18 +615,18 @@ canvas.arena-canvas {
     ].sort((a, b) => b.mass - a.mass).slice(0, 3);
     rankElement.replaceChildren(...leaders.map((entry, index) => {
       const row = document.createElement('li');
-      row.className = `min-w-0 rounded-lg px-2 py-1 ${entry.isPlayer ? 'border border-amber-400/40 bg-amber-400/10' : 'bg-slate-900/70'}`;
+      row.className = entry.isPlayer ? 'rank-entry-player' : 'rank-entry';
       const label = document.createElement('span');
-      label.className = 'flex min-w-0 items-center gap-1';
+      label.className = 'rank-label';
       const dot = document.createElement('span');
-      dot.className = 'h-2 w-2 shrink-0 rounded-full';
+      dot.className = 'rank-dot';
       dot.style.backgroundColor = entry.color;
       const name = document.createElement('span');
-      name.className = 'truncate';
+      name.className = 'rank-name';
       name.textContent = `${index + 1}. ${entry.name}`;
       label.append(dot, name);
       const score = document.createElement('strong');
-      score.className = 'ml-3 block text-right text-slate-300';
+      score.className = 'rank-mass';
       score.textContent = Math.floor(entry.mass);
       row.append(label, score);
       return row;

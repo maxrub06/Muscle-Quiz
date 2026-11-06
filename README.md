@@ -17,4 +17,6 @@ The public leaderboard accepts anonymous, self-reported quiz scores. The API val
 
 ## Muscario online multiplayer
 
-Muscario uses `api/muscario.php` to share player positions and mass in one live arena. It polls the PHP/MySQL server once per second; active players can see and eat one another, while inactive player records are removed after a day. The arena requires the site to be uploaded to the PHP-enabled HTTPS hosting above and the full database schema to be installed. Open the hosted game in two different browser profiles or devices to verify multiplayer. It does not connect players when opened directly as a local file.
+Muscario uses `api/muscario.php` to share player positions and mass in one live arena. When online, it polls the PHP/MySQL server once per second; active players can see and eat one another, while inactive player records are removed after a day. The arena requires the site to be uploaded to the PHP-enabled HTTPS hosting above and the full database schema to be installed. Open the hosted game in two different browser profiles or devices to verify multiplayer. It does not connect players when opened directly as a local file.
+
+If the online arena cannot be reached when a game starts, Muscario starts an offline match against bots instead. Offline best mass is saved only in that browser; it is not uploaded to the online leaderboard. The game checks the online arena again when starting the next match. For installed-app offline use, open the hosted app at least once while online so the service worker can cache its app shell.
