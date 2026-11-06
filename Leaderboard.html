@@ -29,18 +29,15 @@
 </main>
 
 <script>
-/* ---------- Config ----------
-   Leave API_URL empty to keep scores on this device only.
-   To go online later, set it to your server endpoint, e.g. 'https://your-server.com/api/scores'
-   GET  API_URL  -> JSON array of entries
-   POST API_URL  -> body = one entry (JSON); entries look like:
-   { id, player, name, level, score, total, pct, ts }                                   */
-const CONFIG = { API_URL: '' };
+const CONFIG = { API_URL: 'api/scores.php' };
 
 const KEY = 'mq_board';
 const ls = {
   get(k, d) { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } },
-  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  set(k, v) {
+    try { localStorage.setItem(k, JSON.stringify(v)); return true; }
+    catch (e) { console.warn('Could not save leaderboard data locally:', e); return false; }
+  }
 };
 const uid = () => (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : 'id' + Date.now() + Math.random().toString(36).slice(2);
 let ME = ls.get('mq_player', null);
@@ -48,21 +45,38 @@ if (!ME) { ME = uid(); ls.set('mq_player', ME); }
 
 /* ---------- Backend adapter (swap this to go online) ---------- */
 const Backend = {
-  async list() {
+  async list(level) {
     if (CONFIG.API_URL) {
-      const r = await fetch(CONFIG.API_URL);
-      if (!r.ok) throw new Error('bad response');
-      return r.json();
+      const url = new URL(CONFIG.API_URL, location.href);
+      if (level) url.searchParams.set('level', String(level));
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`Leaderboard request failed (${response.status}).`);
+      const entries = await response.json();
+      if (!Array.isArray(entries)) throw new Error('The leaderboard response is invalid.');
+      return entries;
     }
     return ls.get(KEY, []);
   },
   async add(entry) {
     const all = ls.get(KEY, []);
     all.push(entry);
-    ls.set(KEY, all);                       // always keep a local copy
+    const storedLocally = ls.set(KEY, all);
     if (CONFIG.API_URL) {
-      await fetch(CONFIG.API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry) });
+      try {
+        const response = await fetch(new URL(CONFIG.API_URL, location.href), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(entry)
+        });
+        if (!response.ok) throw new Error(`Saving the score failed (${response.status}).`);
+        return 'online';
+      } catch (error) {
+        if (storedLocally) return 'local';
+        throw new Error('Could not save the score online or on this device.');
+      }
     }
+    if (!storedLocally) throw new Error('Could not save the score on this device.');
+    return 'local';
   }
 };
 
@@ -88,7 +102,7 @@ function draw() {
 }
 
 async function load() {
-  try { rows = await Backend.list(); $('note').textContent = ''; }
+  try { rows = await Backend.list(filter); $('note').textContent = ''; }
   catch (e) { rows = ls.get(KEY, []); $('note').textContent = 'Offline – showing scores saved on this device.'; }
   draw();
 }
@@ -105,14 +119,22 @@ if (level >= 1 && level <= 3 && total > 0 && score >= 0 && score <= total && !do
     const name = $('name').value.trim().slice(0, 20) || 'Anonymous';
     $('save').disabled = true;
     const entry = { id: uid(), player: ME, name, level, score, total, pct: Math.round(score / total * 100), ts: Date.now() };
-    try { await Backend.add(entry); } catch (e) { $('note').textContent = 'Saved on this device – could not reach the online server.'; }
+    let saveNote = '';
+    try {
+      if (await Backend.add(entry) === 'local') saveNote = 'Online save failed – this score is saved on this device.';
+    } catch (e) {
+      $('note').textContent = e.message;
+      $('save').disabled = false;
+      return;
+    }
     ls.set('mq_name', name);
     try { sessionStorage.setItem('mq_done', location.search); } catch (e) {}
     history.replaceState(null, '', location.pathname);
     $('submit').classList.add('hidden');
-    load();
+    await load();
+    if (saveNote) $('note').textContent = saveNote;
   };
-}
+};
 load();
 </script>
 <script>

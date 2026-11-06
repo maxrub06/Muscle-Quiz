@@ -1,4 +1,4 @@
-const CACHE_NAME = 'muscle-quest-v2';
+const CACHE_NAME = 'muscle-quest-v4';
 const APP_SHELL = [
   './',
   './index.html',
@@ -8,6 +8,7 @@ const APP_SHELL = [
   './Score.html',
   './Leaderboard.html',
   './flappy-muscles.html',
+  './muscario.html',
   './rhode.jpg',
   './app-icon.svg',
   './click.wav',
@@ -31,7 +32,8 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
-  if (event.request.method !== 'GET' || new URL(event.request.url).origin !== self.location.origin) return;
+  const url = new URL(event.request.url);
+  if (event.request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.includes('/api/')) return;
 
   event.respondWith(
     caches.match(event.request).then(cached => cached || fetch(event.request).then(response => {

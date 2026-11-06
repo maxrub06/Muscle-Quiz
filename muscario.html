@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0f172a">
+<title>Muscario – Muscle Quest</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+html, body { min-height: 100%; }
+body { background-image: radial-gradient(ellipse at 50% 0%, rgb(167 139 250 / 12%), transparent 48%); }
+canvas { touch-action: none; }
+</style>
+</head>
+<body class="min-h-screen bg-slate-900 text-slate-100">
+<main class="mx-auto max-w-3xl p-4 sm:p-6">
+  <header class="mb-5 flex items-center justify-between">
+    <a href="index.html" class="text-sm text-slate-400 transition hover:text-white">← Quit</a>
+    <span class="rounded-full bg-violet-500/15 px-3 py-1 text-xs font-bold uppercase tracking-wider text-violet-300">Minigame</span>
+  </header>
+
+  <h1 class="mb-2 text-center text-3xl font-extrabold text-violet-300">Muscario</h1>
+  <p class="mb-5 text-center text-sm text-slate-400">Grow your muscle. Outsmart the bigger players.</p>
+
+  <section class="rounded-2xl border border-slate-700 bg-slate-800 p-3 shadow-xl shadow-black/20" aria-label="Muscario arena">
+    <div class="mb-3 flex items-center justify-between px-1 text-sm">
+      <span class="text-slate-400">Muscle mass <strong id="mass" class="ml-1 text-lg text-white">12</strong></span>
+      <span class="text-slate-400">Players <strong id="onlineCount" class="ml-1 text-lg text-sky-300">0</strong></span>
+      <span class="text-slate-400">Best <strong id="best" class="ml-1 text-lg text-amber-300">12</strong></span>
+    </div>
+    <div class="relative overflow-hidden rounded-xl border border-slate-700 bg-slate-950">
+      <canvas id="arena" class="block h-[min(64vh,560px)] min-h-[320px] w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400" tabindex="0" role="img" aria-label="Muscario game arena. Use arrow keys or WASD, or point and hold on the arena to move. Eat protein orbs and smaller muscles."></canvas>
+      <div id="overlay" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/75 px-6 text-center">
+        <p id="overlayTitle" class="text-3xl font-extrabold text-white">Get swole!</p>
+        <p id="overlayMessage" class="mt-2 max-w-sm text-sm text-slate-300">Play live against people in the shared online arena. Eat protein and smaller muscles to grow.</p>
+        <label for="playerName" class="mt-4 w-full max-w-xs text-left text-xs font-bold uppercase tracking-wider text-slate-400">Your arena name</label>
+        <input id="playerName" type="text" maxlength="20" autocomplete="nickname" class="mt-2 w-full max-w-xs rounded-xl border border-slate-600 bg-slate-900 px-4 py-3 text-center text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400" placeholder="Muscle name">
+        <button id="startButton" type="button" class="mt-5 rounded-xl bg-violet-500 px-7 py-3 font-bold text-white transition hover:bg-violet-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-300">Start game</button>
+      </div>
+    </div>
+    <p id="status" class="mt-3 min-h-10 text-center text-sm text-slate-300" aria-live="polite">Join the online arena, then invite other players to meet you there.</p>
+  </section>
+
+  <section class="mt-4 rounded-2xl border border-slate-700 bg-slate-800/80 p-4" aria-labelledby="rankHeading">
+    <div class="mb-3 flex items-center justify-between">
+      <h2 id="rankHeading" class="font-bold">Arena leaders</h2>
+      <span class="text-xs text-slate-500">Eat smaller players · Run from bigger ones</span>
+    </div>
+    <ol id="rank" class="grid gap-2 text-sm" aria-live="polite"></ol>
+  </section>
+</main>
+
+<script>
+(() => {
+  const canvas = document.getElementById('arena');
+  const context = canvas.getContext('2d');
+  const massElement = document.getElementById('mass');
+  const onlineCountElement = document.getElementById('onlineCount');
+  const bestElement = document.getElementById('best');
+  const rankElement = document.getElementById('rank');
+  const overlay = document.getElementById('overlay');
+  const overlayTitle = document.getElementById('overlayTitle');
+  const overlayMessage = document.getElementById('overlayMessage');
+  const startButton = document.getElementById('startButton');
+  const playerNameInput = document.getElementById('playerName');
+  const statusElement = document.getElementById('status');
+  const apiUrl = new URL('api/muscario.php', location.href);
+  const world = { width: 2800, height: 1900 };
+  const colors = ['#34d399', '#f472b6', '#60a5fa', '#fbbf24', '#a78bfa', '#fb7185', '#2dd4bf'];
+  const names = ['Flexasaurus', 'Captain Calf', 'Swole Patrol', 'Hamstring Hero', 'Big Deltoid', 'The Quadzilla', 'Tiny Traps', 'Buffalo Wing', 'Glute Force', 'Bicep Bandit', 'Lady Lats', 'Protein Pete'];
+  const keys = new Set();
+  const foods = [];
+  const bots = [];
+  const playerIdKey = 'muscarioPlayerId';
+  const playerNameKey = 'muscarioPlayerName';
+  const playerId = getPlayerId();
+  const player = {
+    id: playerId,
+    name: 'Muscle',
+    x: world.width / 2,
+    y: world.height / 2,
+    mass: 12,
+    radius: 0,
+    color: colors[playerColorIndex(playerId)]
+  };
+  let onlinePlayers = [];
+  let state = 'ready';
+  let best = 12;
+  let viewWidth = 0;
+  let viewHeight = 0;
+  let pointerActive = false;
+  let pointerX = 0;
+  let pointerY = 0;
+  let spawnTimer = 0;
+  let hudTimer = 0;
+  let lastFrame = 0;
+  let heartbeatTimer = null;
+  let networkBusy = false;
+  let networkErrorShown = false;
+
+  function getPlayerId() {
+    try {
+      const saved = localStorage.getItem(playerIdKey);
+      if (saved && /^[a-f0-9-]{36}$/i.test(saved)) return saved;
+      const id = window.crypto && typeof window.crypto.randomUUID === 'function'
+        ? window.crypto.randomUUID()
+        : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, character => {
+          const random = Math.random() * 16 | 0;
+          return (character === 'x' ? random : (random & 3 | 8)).toString(16);
+        });
+      localStorage.setItem(playerIdKey, id);
+      return id;
+    } catch (error) {
+      console.warn('Could not save the Muscario player ID:', error);
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, character => {
+        const random = Math.random() * 16 | 0;
+        return (character === 'x' ? random : (random & 3 | 8)).toString(16);
+      });
+    }
+  }
+
+  function playerColorIndex(id) {
+    return parseInt(id.replace(/-/g, '').slice(0, 8), 16) % colors.length;
+  }
+
+  function savedPlayerName() {
+    try { return localStorage.getItem(playerNameKey) || ''; }
+    catch (error) {
+      console.warn('Could not read the Muscario player name:', error);
+      return '';
+    }
+  }
+
+  async function sendPresence(action) {
+    if (networkBusy) return;
+    networkBusy = true;
+    try {
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action,
+          id: player.id,
+          name: player.name,
+          x: Math.round(player.x * 100) / 100,
+          y: Math.round(player.y * 100) / 100,
+          mass: Math.round(player.mass * 100) / 100
+        }),
+        cache: 'no-store'
+      });
+      if (!response.ok) throw new Error(`Arena request failed (${response.status}).`);
+      const result = await response.json();
+      if (action === 'leave') return;
+      if (!result || !Array.isArray(result.players)) throw new Error('The online arena returned an invalid response.');
+      if (!result.alive) {
+        if (state === 'playing') finishGame();
+        return;
+      }
+
+      networkErrorShown = false;
+      const currentPlayer = result.players.find(other => other.id === player.id);
+      if (currentPlayer) player.mass = Number(currentPlayer.mass);
+      onlinePlayers = result.players.filter(other => other.id !== player.id);
+      onlineCountElement.textContent = String(result.players.length);
+      statusElement.textContent = result.players.length === 1
+        ? 'Online · You are the only player in the arena. Invite a friend!'
+        : `Online · ${result.players.length} players in the shared arena.`;
+      updateHud();
+    } catch (error) {
+      if (!networkErrorShown) console.warn('Could not connect to the Muscario online arena:', error);
+      networkErrorShown = true;
+      if (state === 'playing') statusElement.textContent = 'Online connection lost · reconnecting…';
+      throw error;
+    } finally {
+      networkBusy = false;
+    }
+  }
+
+  function radiusFor(mass) {
+    return Math.min(98, 17 + Math.sqrt(mass) * 2.5);
+  }
+
+  function randomBetween(min, max) {
+    return min + Math.random() * (max - min);
+  }
+
+  function randomPosition() {
+    return { x: randomBetween(40, world.width - 40), y: randomBetween(40, world.height - 40) };
+  }
+
+  function makeBot(index, mass) {
+    let position = randomPosition();
+    for (let attempt = 0; attempt < 20; attempt++) {
+      position = randomPosition();
+      if (Math.hypot(position.x - player.x, position.y - player.y) > 400) break;
+    }
+    return {
+      x: position.x,
+      y: position.y,
+      mass,
+      radius: radiusFor(mass),
+      color: colors[index % colors.length],
+      name: names[index % names.length],
+      angle: randomBetween(0, Math.PI * 2),
+      turnTimer: randomBetween(0.5, 2.5)
+    };
+  }
+
+  function fillFood(count) {
+    while (foods.length < count) {
+      const position = randomPosition();
+      const mass = Math.random() < 0.12 ? 1.2 : 0.6;
+      foods.push({ ...position, mass, radius: mass > 1 ? 6 : 4, color: colors[Math.floor(Math.random() * colors.length)] });
+    }
+  }
+
+  function resizeCanvas() {
+    const bounds = canvas.getBoundingClientRect();
+    const scale = Math.min(window.devicePixelRatio || 1, 2);
+    viewWidth = bounds.width;
+    viewHeight = bounds.height;
+    canvas.width = Math.round(viewWidth * scale);
+    canvas.height = Math.round(viewHeight * scale);
+    context.setTransform(scale, 0, 0, scale, 0, 0);
+    draw();
+  }
+
+  function loadBest() {
+    try {
+      best = Math.max(12, Number(localStorage.getItem('muscarioBestMass')) || 12);
+    } catch (error) {
+      console.warn('Could not read the Muscario best mass:', error);
+    }
+    bestElement.textContent = Math.floor(best);
+  }
+
+  function saveBest() {
+    if (player.mass <= best) return;
+    best = player.mass;
+    bestElement.textContent = Math.floor(best);
+    try {
+      localStorage.setItem('muscarioBestMass', String(best));
+    } catch (error) {
+      console.warn('Could not save the Muscario best mass:', error);
+    }
+  }
+
+  function reset() {
+    player.x = world.width / 2;
+    player.y = world.height / 2;
+    player.mass = 12;
+    player.radius = radiusFor(player.mass);
+    foods.length = 0;
+    bots.length = 0;
+    for (let i = 0; i < 13; i++) {
+      const mass = i < 3 ? randomBetween(45, 80) : randomBetween(5, 32);
+      bots.push(makeBot(i, mass));
+    }
+    fillFood(220);
+    spawnTimer = 0;
+    hudTimer = 0;
+    updateHud();
+  }
+
+  async function startGame() {
+    startButton.disabled = true;
+    startButton.textContent = 'Connecting…';
+    player.name = playerNameInput.value.trim().slice(0, 20) || 'Muscle';
+    playerNameInput.value = player.name;
+    try { localStorage.setItem(playerNameKey, player.name); }
+    catch (error) { console.warn('Could not save the Muscario player name:', error); }
+    reset();
+    try {
+      await sendPresence('start');
+    } catch (error) {
+      overlayTitle.textContent = 'Could not join the arena';
+      overlayMessage.textContent = 'Check your connection and make sure the game is uploaded with api/muscario.php and the MySQL tables are installed.';
+      statusElement.textContent = 'Muscario needs its online PHP and MySQL server to start.';
+      startButton.textContent = 'Try again';
+      startButton.disabled = false;
+      return;
+    }
+    state = 'playing';
+    overlay.classList.add('hidden');
+    startButton.textContent = 'Play again';
+    startButton.disabled = false;
+    heartbeatTimer = setInterval(() => {
+      if (state === 'playing') sendPresence('heartbeat').catch(() => {});
+    }, 1000);
+    canvas.focus({ preventScroll: true });
+  }
+
+  function finishGame() {
+    if (state !== 'playing') return;
+    state = 'over';
+    if (heartbeatTimer !== null) {
+      clearInterval(heartbeatTimer);
+      heartbeatTimer = null;
+    }
+    sendPresence('leave').catch(() => {});
+    saveBest();
+    overlayTitle.textContent = 'Muscle down!';
+    overlayMessage.textContent = `You grew to ${Math.floor(player.mass)} mass. Eat protein and smaller muscles to beat your best.`;
+    startButton.textContent = 'Play again';
+    startButton.disabled = false;
+    overlay.classList.remove('hidden');
+    statusElement.textContent = 'You were eaten. Grow stronger and jump back into the online arena!';
+    updateHud();
+  }
+
+  function updateHud() {
+    player.radius = radiusFor(player.mass);
+    massElement.textContent = Math.floor(player.mass);
+    const leaders = [
+      { name: `You · ${player.name}`, mass: player.mass, color: player.color, isPlayer: true },
+      ...onlinePlayers.map(other => ({
+        name: other.name,
+        mass: Number(other.mass),
+        color: colors[other.color] || colors[0],
+        isPlayer: false
+      })),
+      ...bots.map(bot => ({ name: bot.name, mass: bot.mass, color: bot.color, isPlayer: false }))
+    ].sort((a, b) => b.mass - a.mass).slice(0, 5);
+    rankElement.replaceChildren(...leaders.map((entry, index) => {
+      const row = document.createElement('li');
+      row.className = `flex items-center justify-between rounded-lg px-3 py-2 ${entry.isPlayer ? 'border border-amber-400/40 bg-amber-400/10' : 'bg-slate-900/70'}`;
+      const label = document.createElement('span');
+      label.className = 'flex items-center gap-2';
+      const dot = document.createElement('span');
+      dot.className = 'h-2.5 w-2.5 rounded-full';
+      dot.style.backgroundColor = entry.color;
+      const name = document.createElement('span');
+      name.textContent = `${index + 1}. ${entry.name}`;
+      label.append(dot, name);
+      const score = document.createElement('strong');
+      score.textContent = Math.floor(entry.mass);
+      row.append(label, score);
+      return row;
+    }));
+  }
+
+  function drawMuscle(x, y, radius, color, label) {
+    context.save();
+    context.beginPath();
+    context.arc(x, y, radius, 0, Math.PI * 2);
+    context.fillStyle = color;
+    context.globalAlpha = 0.9;
+    context.fill();
+    context.globalAlpha = 1;
+    context.lineWidth = Math.max(2, radius * 0.08);
+    context.strokeStyle = 'rgba(255,255,255,0.8)';
+    context.stroke();
+    context.font = `${Math.max(14, radius * 1.05)}px system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.fillText('💪', x, y);
+    context.font = 'bold 12px system-ui, sans-serif';
+    context.lineWidth = 3;
+    context.strokeStyle = 'rgba(15,23,42,0.9)';
+    context.strokeText(label, x, y + radius + 15);
+    context.fillStyle = '#fff';
+    context.fillText(label, x, y + radius + 15);
+    context.restore();
+  }
+
+  function draw() {
+    if (!viewWidth || !viewHeight) return;
+    context.clearRect(0, 0, viewWidth, viewHeight);
+    context.fillStyle = '#082f49';
+    context.fillRect(0, 0, viewWidth, viewHeight);
+    context.save();
+    context.translate(viewWidth / 2 - player.x, viewHeight / 2 - player.y);
+
+    const gridSize = 70;
+    const left = Math.max(0, Math.floor((player.x - viewWidth / 2) / gridSize) * gridSize);
+    const right = Math.min(world.width, player.x + viewWidth / 2 + gridSize);
+    const top = Math.max(0, Math.floor((player.y - viewHeight / 2) / gridSize) * gridSize);
+    const bottom = Math.min(world.height, player.y + viewHeight / 2 + gridSize);
+    context.strokeStyle = 'rgba(148,163,184,0.12)';
+    context.lineWidth = 1;
+    context.beginPath();
+    for (let x = left; x <= right; x += gridSize) {
+      context.moveTo(x, top);
+      context.lineTo(x, bottom);
+    }
+    for (let y = top; y <= bottom; y += gridSize) {
+      context.moveTo(left, y);
+      context.lineTo(right, y);
+    }
+    context.stroke();
+    context.strokeStyle = '#38bdf8';
+    context.lineWidth = 8;
+    context.strokeRect(0, 0, world.width, world.height);
+
+    for (const food of foods) {
+      context.beginPath();
+      context.arc(food.x, food.y, food.radius, 0, Math.PI * 2);
+      context.fillStyle = food.color;
+      context.fill();
+      context.beginPath();
+      context.arc(food.x - 1, food.y - 1, Math.max(1.5, food.radius * 0.35), 0, Math.PI * 2);
+      context.fillStyle = 'rgba(255,255,255,0.75)';
+      context.fill();
+    }
+    for (const bot of bots) drawMuscle(bot.x, bot.y, bot.radius, bot.color, bot.name);
+    for (const other of onlinePlayers) {
+      drawMuscle(other.x, other.y, radiusFor(other.mass), colors[other.color] || colors[0], other.name);
+    }
+    drawMuscle(player.x, player.y, player.radius, player.color, player.name);
+    context.restore();
+  }
+
+  function movePlayer(delta) {
+    let x = 0;
+    let y = 0;
+    if (keys.has('ArrowLeft') || keys.has('KeyA')) x -= 1;
+    if (keys.has('ArrowRight') || keys.has('KeyD')) x += 1;
+    if (keys.has('ArrowUp') || keys.has('KeyW')) y -= 1;
+    if (keys.has('ArrowDown') || keys.has('KeyS')) y += 1;
+    if (x === 0 && y === 0 && pointerActive) {
+      x = pointerX - viewWidth / 2;
+      y = pointerY - viewHeight / 2;
+    }
+    const length = Math.hypot(x, y);
+    if (length < 8) return;
+    const speed = Math.max(78, 230 / Math.pow(player.radius / 26, 0.35));
+    player.x = Math.max(player.radius, Math.min(world.width - player.radius, player.x + (x / length) * speed * delta));
+    player.y = Math.max(player.radius, Math.min(world.height - player.radius, player.y + (y / length) * speed * delta));
+  }
+
+  function moveBots(delta) {
+    for (const bot of bots) {
+      const distance = Math.hypot(player.x - bot.x, player.y - bot.y);
+      bot.turnTimer -= delta;
+      if (distance < 430 && player.radius > bot.radius * 1.12) {
+        bot.angle = Math.atan2(bot.y - player.y, bot.x - player.x);
+      } else if (distance < 520 && bot.radius > player.radius * 1.12) {
+        bot.angle = Math.atan2(player.y - bot.y, player.x - bot.x);
+      } else if (bot.turnTimer <= 0) {
+        bot.angle += randomBetween(-1.1, 1.1);
+        bot.turnTimer = randomBetween(0.7, 2.2);
+      }
+
+      const speed = Math.max(42, 155 / Math.pow(bot.radius / 25, 0.3));
+      bot.x += Math.cos(bot.angle) * speed * delta;
+      bot.y += Math.sin(bot.angle) * speed * delta;
+      if (bot.x < bot.radius || bot.x > world.width - bot.radius) bot.angle = Math.PI - bot.angle;
+      if (bot.y < bot.radius || bot.y > world.height - bot.radius) bot.angle = -bot.angle;
+      bot.x = Math.max(bot.radius, Math.min(world.width - bot.radius, bot.x));
+      bot.y = Math.max(bot.radius, Math.min(world.height - bot.radius, bot.y));
+    }
+  }
+
+  function eatNearby() {
+    for (let index = foods.length - 1; index >= 0; index--) {
+      const food = foods[index];
+      if (Math.hypot(player.x - food.x, player.y - food.y) < player.radius + food.radius) {
+        player.mass = Math.min(10000, player.mass + food.mass);
+        foods.splice(index, 1);
+      }
+    }
+    fillFood(220);
+
+    for (let index = bots.length - 1; index >= 0; index--) {
+      const bot = bots[index];
+      if (Math.hypot(player.x - bot.x, player.y - bot.y) >= player.radius + bot.radius - Math.min(player.radius, bot.radius) * 0.45) continue;
+      if (player.radius > bot.radius * 1.12) {
+        player.mass = Math.min(10000, player.mass + bot.mass * 0.8);
+        bots.splice(index, 1);
+      } else if (bot.radius > player.radius * 1.12) {
+        finishGame();
+        return;
+      }
+    }
+  }
+
+  function update(delta) {
+    if (state !== 'playing') return;
+    movePlayer(delta);
+    moveBots(delta);
+    eatNearby();
+    if (state !== 'playing') return;
+
+    spawnTimer += delta;
+    if (spawnTimer >= 1.8 && bots.length < 13) {
+      bots.push(makeBot(bots.length, randomBetween(5, 35)));
+      spawnTimer = 0;
+    }
+    hudTimer += delta;
+    if (hudTimer >= 0.25) {
+      hudTimer = 0;
+      updateHud();
+    }
+  }
+
+  function frame(timestamp) {
+    const delta = Math.min((timestamp - (lastFrame || timestamp)) / 1000, 0.04);
+    lastFrame = timestamp;
+    update(delta);
+    draw();
+    requestAnimationFrame(frame);
+  }
+
+  canvas.addEventListener('pointerdown', event => {
+    event.preventDefault();
+    if (state !== 'playing') return;
+    canvas.setPointerCapture(event.pointerId);
+    const bounds = canvas.getBoundingClientRect();
+    pointerX = event.clientX - bounds.left;
+    pointerY = event.clientY - bounds.top;
+    pointerActive = true;
+  });
+  canvas.addEventListener('pointermove', event => {
+    if (event.pointerType !== 'mouse' && !event.buttons) return;
+    const bounds = canvas.getBoundingClientRect();
+    pointerX = event.clientX - bounds.left;
+    pointerY = event.clientY - bounds.top;
+    pointerActive = true;
+  });
+  canvas.addEventListener('pointerup', event => {
+    if (event.pointerType !== 'mouse') pointerActive = false;
+  });
+  canvas.addEventListener('pointercancel', () => { pointerActive = false; });
+  canvas.addEventListener('pointerleave', event => {
+    if (event.pointerType === 'mouse') pointerActive = false;
+  });
+  document.addEventListener('keydown', event => {
+    if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Space'].includes(event.code)) event.preventDefault();
+    keys.add(event.code);
+  });
+  document.addEventListener('keyup', event => { keys.delete(event.code); });
+  window.addEventListener('blur', () => keys.clear());
+  window.addEventListener('resize', resizeCanvas);
+  window.addEventListener('pagehide', () => {
+    if (!player.id || !navigator.sendBeacon) return;
+    const body = new Blob([JSON.stringify({
+      action: 'leave',
+      id: player.id,
+      name: player.name,
+      x: player.x,
+      y: player.y,
+      mass: player.mass
+    })], { type: 'application/json' });
+    navigator.sendBeacon(apiUrl, body);
+  });
+  startButton.addEventListener('click', startGame);
+  document.querySelector('header a').addEventListener('click', event => {
+    event.preventDefault();
+    const destination = event.currentTarget.href;
+    setTimeout(() => { location.href = destination; }, 120);
+  });
+
+  loadBest();
+  playerNameInput.value = savedPlayerName();
+  reset();
+  resizeCanvas();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

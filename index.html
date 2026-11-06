@@ -100,6 +100,14 @@ dialog::backdrop {
     </span>
     <span class="shrink-0 rounded-full bg-white px-3 py-2 text-xs font-extrabold tracking-wide text-violet-800 transition-transform group-hover:translate-x-1">PLAY <span aria-hidden="true">→</span></span>
   </a>
+  <a id="muscarioCard" href="muscario.html" class="level-card group mt-3 flex items-center justify-between gap-4 rounded-2xl border border-fuchsia-400/40 bg-fuchsia-950/70 p-4 text-slate-100 shadow-lg shadow-fuchsia-950/20 hover:border-fuchsia-300 hover:bg-fuchsia-900/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 sm:p-5">
+    <span class="min-w-0">
+      <span class="mb-1 block text-xs font-bold uppercase tracking-wider text-fuchsia-300">New minigame</span>
+      <span class="block text-lg font-bold">Muscario</span>
+      <span class="mt-0.5 block text-sm text-slate-300">Eat, grow, and rule the muscle arena</span>
+    </span>
+    <span class="shrink-0 rounded-full bg-white px-3 py-2 text-xs font-extrabold tracking-wide text-fuchsia-800 transition-transform group-hover:translate-x-1">PLAY <span aria-hidden="true">→</span></span>
+  </a>
 
   <nav class="mt-6 grid grid-cols-2 gap-3" aria-label="More options">
     <a href="Score.html" class="rounded-xl border border-slate-700 bg-slate-800/70 px-4 py-4 text-center transition hover:border-amber-400/50 hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400">
@@ -164,6 +172,7 @@ dialog::backdrop {
   const gameSounds = document.getElementById('gameSounds');
   const showMinigames = document.getElementById('showMinigames');
   const minigameCard = document.getElementById('minigameCard');
+  const muscarioCard = document.getElementById('muscarioCard');
   const backgroundMusic = document.getElementById('backgroundMusic');
   const musicStatus = document.getElementById('musicStatus');
   const installButton = document.getElementById('installApp');
@@ -286,6 +295,7 @@ dialog::backdrop {
   gameSounds.checked = gameSoundsEnabled();
   showMinigames.checked = minigamesVisible();
   minigameCard.hidden = !showMinigames.checked;
+  muscarioCard.hidden = !showMinigames.checked;
   backgroundMusic.checked = musicEnabled();
   document.getElementById('settingsButton').addEventListener('click', () => settingsDialog.showModal());
   document.getElementById('closeSettings').addEventListener('click', () => settingsDialog.close());
@@ -299,6 +309,7 @@ dialog::backdrop {
   });
   showMinigames.addEventListener('change', () => {
     minigameCard.hidden = !showMinigames.checked;
+    muscarioCard.hidden = !showMinigames.checked;
     try { localStorage.setItem(minigamesSettingKey, String(showMinigames.checked)); }
     catch (error) { console.warn('Could not save the minigame visibility setting:', error); }
   });
