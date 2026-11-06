@@ -798,6 +798,39 @@ canvas:focus-visible {
     }
   }
 
+  function eatBotsNearby() {
+    for (const bot of bots) {
+      for (let foodIndex = foods.length - 1; foodIndex >= 0; foodIndex--) {
+        const food = foods[foodIndex];
+        if (Math.hypot(bot.x - food.x, bot.y - food.y) >= bot.radius + food.radius) continue;
+        bot.mass = Math.min(10000, bot.mass + food.mass);
+        bot.radius = radiusFor(bot.mass);
+        foods.splice(foodIndex, 1);
+      }
+    }
+
+    for (let botIndex = bots.length - 1; botIndex >= 0; botIndex--) {
+      const bot = bots[botIndex];
+      for (let otherIndex = botIndex - 1; otherIndex >= 0; otherIndex--) {
+        const other = bots[otherIndex];
+        const distance = Math.hypot(bot.x - other.x, bot.y - other.y);
+        if (distance >= bot.radius + other.radius - Math.min(bot.radius, other.radius) * 0.45) continue;
+        if (bot.mass > other.mass) {
+          bot.mass = Math.min(10000, bot.mass + other.mass * 0.8);
+          bot.radius = radiusFor(bot.mass);
+          bots.splice(otherIndex, 1);
+          continue;
+        }
+        if (other.mass > bot.mass) {
+          other.mass = Math.min(10000, other.mass + bot.mass * 0.8);
+          other.radius = radiusFor(other.mass);
+          bots.splice(botIndex, 1);
+          break;
+        }
+      }
+    }
+  }
+
   function eatNearby() {
     for (let index = foods.length - 1; index >= 0; index--) {
       const food = foods[index];
@@ -828,6 +861,7 @@ canvas:focus-visible {
     if (state !== 'playing') return;
     movePlayer(delta);
     moveBots(delta);
+    eatBotsNearby();
     eatNearby();
     if (state !== 'playing') return;
 
