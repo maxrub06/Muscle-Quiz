@@ -48,7 +48,7 @@ canvas {
       <span class="text-slate-400">Best <strong id="best" class="ml-1 text-lg text-amber-300">0</strong></span>
     </div>
     <canvas id="game" class="block w-full rounded-xl bg-sky-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400" width="360" height="560" tabindex="0" role="img" aria-label="Flappy Muscles game. Press Space, Arrow Up, or tap to flap."></canvas>
-    <p id="message" class="mt-3 min-h-10 text-center text-sm text-slate-300" aria-live="polite">Tap the game or press Space to start.</p>
+    <p id="message" class="mt-3 min-h-10 text-center text-sm text-slate-300" aria-live="polite">Tap or press Space / ↑ to flap through the gaps and avoid the pipes.</p>
   </section>
 
 </main>
@@ -74,8 +74,28 @@ canvas {
   let boss = null;
   let audioContext = null;
   const clickSound = new Audio('click.wav');
+  const soundSettingKey = 'mq_flappy_sounds';
+
+  function soundsEnabled() {
+    try { return localStorage.getItem(soundSettingKey) !== 'false'; }
+    catch (error) {
+      console.warn('Could not read the minigame sound setting:', error);
+      return true;
+    }
+  }
+
+  function awardBadge(badge) {
+    try {
+      const badges = new Set(JSON.parse(localStorage.getItem('mq_badges') || '[]'));
+      badges.add(badge);
+      localStorage.setItem('mq_badges', JSON.stringify([...badges]));
+    } catch (error) {
+      console.warn('Could not save the achievement:', error);
+    }
+  }
 
   function getAudioContext() {
+    if (!soundsEnabled()) return null;
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (!AudioContext) {
       console.warn('Game sound is not supported in this browser.');
@@ -140,6 +160,7 @@ canvas {
   }
 
   function playButtonSound() {
+    if (!soundsEnabled()) return;
     try {
       clickSound.currentTime = 0;
       clickSound.play().catch(error => console.warn('Could not play the button sound:', error));
@@ -200,6 +221,7 @@ canvas {
       } catch (error) {
         console.warn('Could not save the Flappy Muscles best score:', error);
       }
+      if (score >= 10) awardBadge('flappy_10');
     }
   }
 
@@ -316,8 +338,10 @@ canvas {
         pipe.scored = true;
         score++;
         scoreElement.textContent = score;
+        if (score === 10) awardBadge('flappy_10');
         playScoreSound();
         if (score === 999) {
+          awardBadge('flappy_boss');
           state = 'boss';
           boss = { x: width + 48, y: Math.max(32, Math.min(height - 96, bird.y - 32)), elapsed: 0 };
           messageElement.textContent = 'Level 999... something is coming!';

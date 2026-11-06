@@ -49,21 +49,21 @@ dialog::backdrop {
       <span class="text-xs text-slate-500">3 challenges</span>
     </div>
     <nav class="grid gap-3" aria-label="Quiz levels">
-      <a href="quiz1.html" class="level-card group flex items-center gap-4 rounded-2xl bg-emerald-600 p-4 text-white shadow-lg shadow-emerald-950/30 hover:shadow-xl hover:shadow-emerald-950/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 sm:p-5">
+      <a href="Quiz1.html" class="level-card group flex items-center gap-4 rounded-2xl bg-emerald-600 p-4 text-white shadow-lg shadow-emerald-950/30 hover:shadow-xl hover:shadow-emerald-950/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 sm:p-5">
         <span class="rounded-full bg-white px-3 py-2 text-xs font-extrabold tracking-wide text-emerald-800 transition-transform group-hover:translate-x-1">PLAY <span aria-hidden="true">→</span></span>
         <span class="min-w-0 flex-1">
           <span class="block text-lg font-bold">Beginner</span>
           <span class="mt-0.5 block text-sm text-white/80">10 questions <span aria-hidden="true">·</span> Level 1</span>
         </span>
       </a>
-      <a href="quiz2.html" class="level-card group flex items-center gap-4 rounded-2xl bg-amber-400 p-4 text-slate-950 shadow-lg shadow-amber-950/30 hover:shadow-xl hover:shadow-amber-950/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 sm:p-5">
+      <a href="Quiz2.html" class="level-card group flex items-center gap-4 rounded-2xl bg-amber-400 p-4 text-slate-950 shadow-lg shadow-amber-950/30 hover:shadow-xl hover:shadow-amber-950/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 sm:p-5">
         <span class="rounded-full bg-white px-3 py-2 text-xs font-extrabold tracking-wide text-amber-800 transition-transform group-hover:translate-x-1">PLAY <span aria-hidden="true">→</span></span>
         <span class="min-w-0 flex-1">
           <span class="block text-lg font-bold">Intermediate</span>
           <span class="mt-0.5 block text-sm text-slate-900/75">30 questions <span aria-hidden="true">·</span> Level 2</span>
         </span>
       </a>
-      <a href="quiz3.html" class="level-card group flex items-center gap-4 rounded-2xl bg-rose-600 p-4 text-white shadow-lg shadow-rose-950/30 hover:shadow-xl hover:shadow-rose-950/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 sm:p-5">
+      <a href="Quiz3.html" class="level-card group flex items-center gap-4 rounded-2xl bg-rose-600 p-4 text-white shadow-lg shadow-rose-950/30 hover:shadow-xl hover:shadow-rose-950/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 sm:p-5">
         <span class="rounded-full bg-white px-3 py-2 text-xs font-extrabold tracking-wide text-rose-800 transition-transform group-hover:translate-x-1">PLAY <span aria-hidden="true">→</span></span>
         <span class="min-w-0 flex-1">
           <span class="block text-lg font-bold">Expert</span>
@@ -71,6 +71,25 @@ dialog::backdrop {
         </span>
       </a>
     </nav>
+  </section>
+
+  <a id="dailyChallenge" href="Quiz1.html?mode=daily" class="level-card group mt-5 flex items-center justify-between gap-4 rounded-2xl border border-sky-400/40 bg-sky-950/70 p-4 text-slate-100 shadow-lg shadow-sky-950/20 hover:border-sky-300 hover:bg-sky-900/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 sm:p-5">
+    <span>
+      <span class="mb-1 block text-xs font-bold uppercase tracking-wider text-sky-300">Daily challenge</span>
+      <span class="block text-lg font-bold">10 questions · New every day</span>
+      <span id="dailyStatus" class="mt-0.5 block text-sm text-slate-300">Keep your streak going!</span>
+    </span>
+    <span class="shrink-0 rounded-full bg-white px-3 py-2 text-xs font-extrabold tracking-wide text-sky-800 transition-transform group-hover:translate-x-1">PLAY <span aria-hidden="true">→</span></span>
+  </a>
+
+  <section class="mt-4 rounded-2xl border border-slate-700 bg-slate-800/80 p-4" aria-labelledby="practice-heading">
+    <h2 id="practice-heading" class="font-bold">Practice a muscle group</h2>
+    <div class="mt-3 flex gap-2">
+      <select id="muscleGroup" class="min-w-0 flex-1 rounded-xl border border-slate-600 bg-slate-900 px-3 py-3 text-sm text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400" aria-label="Choose a muscle group">
+        <option value="Abdomen">Abdomen</option><option value="Back">Back</option><option value="Chest">Chest</option><option value="Ear">Ear</option><option value="Face">Face</option><option value="Foot">Foot</option><option value="Forearm">Forearm</option><option value="Glutes">Glutes</option><option value="Hand">Hand</option><option value="Hip">Hip</option><option value="Lower leg">Lower leg</option><option value="Mouth">Mouth</option><option value="Neck">Neck</option><option value="Pelvis">Pelvis</option><option value="Shoulder">Shoulder</option><option value="Thigh">Thigh</option><option value="Throat">Throat</option><option value="Torso">Torso</option><option value="Upper arm">Upper arm</option>
+      </select>
+      <a id="practiceLink" href="Quiz3.html?mode=group&amp;group=Abdomen" class="rounded-xl bg-violet-500 px-4 py-3 text-sm font-bold text-white transition hover:bg-violet-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-300">Practice</a>
+    </div>
   </section>
 
   <a href="flappy-muscles.html" class="level-card group mt-5 flex items-center justify-between gap-4 rounded-2xl border border-violet-400/40 bg-violet-950/70 p-4 text-slate-100 shadow-lg shadow-violet-950/20 hover:border-violet-300 hover:bg-violet-900/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 sm:p-5">
@@ -83,17 +102,22 @@ dialog::backdrop {
   </a>
 
   <nav class="mt-6 grid grid-cols-2 gap-3" aria-label="More options">
-    <a href="score.html" class="rounded-xl border border-slate-700 bg-slate-800/70 px-4 py-4 text-center transition hover:border-amber-400/50 hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400">
+    <a href="Score.html" class="rounded-xl border border-slate-700 bg-slate-800/70 px-4 py-4 text-center transition hover:border-amber-400/50 hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400">
       <span class="mb-1 block text-lg" aria-hidden="true">🏆</span>
       <span class="block text-sm font-bold">My results</span>
       <span class="mt-1 block text-xs text-slate-400">Personal bests</span>
     </a>
-    <a href="leaderboard.html" class="rounded-xl border border-slate-700 bg-slate-800/70 px-4 py-4 text-center transition hover:border-amber-400/50 hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400">
+    <a href="Leaderboard.html" class="rounded-xl border border-slate-700 bg-slate-800/70 px-4 py-4 text-center transition hover:border-amber-400/50 hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400">
       <span class="mb-1 block text-lg" aria-hidden="true">📋</span>
       <span class="block text-sm font-bold">Leaderboard</span>
       <span class="mt-1 block text-xs text-slate-400">School scores</span>
     </a>
   </nav>
+
+  <section class="mt-6 rounded-2xl border border-slate-700 bg-slate-800/80 p-4" aria-labelledby="homeAchievementsHeading">
+    <h2 id="homeAchievementsHeading" class="font-bold">Achievements</h2>
+    <div id="homeBadgeList" class="mt-3 grid gap-2 text-sm" aria-live="polite"></div>
+  </section>
 </main>
 <dialog id="settingsDialog" aria-labelledby="settingsTitle" class="w-[calc(100%-2rem)] max-w-sm rounded-2xl border border-slate-700 bg-slate-800 p-0 text-slate-100 shadow-2xl backdrop:bg-slate-950/70">
   <div class="flex items-center justify-between border-b border-slate-700 px-5 py-4">
@@ -107,9 +131,16 @@ dialog::backdrop {
     </span>
     <input id="buttonSounds" type="checkbox" class="h-5 w-5 shrink-0 accent-amber-400">
   </label>
+  <label for="gameSounds" class="flex cursor-pointer items-center justify-between gap-4 border-t border-slate-700 px-5 py-5">
+    <span>
+      <span class="block font-semibold">Minigame sounds</span>
+      <span class="mt-1 block text-sm text-slate-400">Flaps, scores, and game-over sounds</span>
+    </span>
+    <input id="gameSounds" type="checkbox" class="h-5 w-5 shrink-0 accent-amber-400">
+  </label>
   <div class="border-t border-slate-700 px-5 py-4">
     <button id="installApp" type="button" class="w-full rounded-xl bg-amber-400 px-4 py-3 text-sm font-bold text-slate-900 transition hover:bg-amber-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200">Download app</button>
-    <p id="installMessage" class="mt-2 text-center text-xs text-slate-400" aria-live="polite">Install Muscle Quest on your device.</p>
+    <p id="installMessage" class="mt-2 text-center text-xs text-slate-400" aria-live="polite">Install options depend on your browser. HTTPS or localhost is required.</p>
   </div>
 </dialog>
 <script>
@@ -117,9 +148,11 @@ dialog::backdrop {
   const click = new Audio('click.wav');
   const settingsDialog = document.getElementById('settingsDialog');
   const buttonSounds = document.getElementById('buttonSounds');
+  const gameSounds = document.getElementById('gameSounds');
   const installButton = document.getElementById('installApp');
   const installMessage = document.getElementById('installMessage');
   const soundSettingKey = 'mq_button_sounds';
+  const gameSoundSettingKey = 'mq_flappy_sounds';
   let installPrompt = null;
 
   function soundsEnabled() {
@@ -130,12 +163,25 @@ dialog::backdrop {
     }
   }
 
+  function gameSoundsEnabled() {
+    try { return localStorage.getItem(gameSoundSettingKey) !== 'false'; }
+    catch (error) {
+      console.warn('Could not read the minigame sound setting:', error);
+      return true;
+    }
+  }
+
   buttonSounds.checked = soundsEnabled();
+  gameSounds.checked = gameSoundsEnabled();
   document.getElementById('settingsButton').addEventListener('click', () => settingsDialog.showModal());
   document.getElementById('closeSettings').addEventListener('click', () => settingsDialog.close());
   buttonSounds.addEventListener('change', () => {
     try { localStorage.setItem(soundSettingKey, String(buttonSounds.checked)); }
     catch (error) { console.warn('Could not save the button sound setting:', error); }
+  });
+  gameSounds.addEventListener('change', () => {
+    try { localStorage.setItem(gameSoundSettingKey, String(gameSounds.checked)); }
+    catch (error) { console.warn('Could not save the minigame sound setting:', error); }
   });
   window.addEventListener('beforeinstallprompt', event => {
     event.preventDefault();
@@ -166,6 +212,59 @@ dialog::backdrop {
   settingsDialog.addEventListener('click', event => {
     if (event.target === settingsDialog) settingsDialog.close();
   });
+  const muscleGroup = document.getElementById('muscleGroup');
+  const practiceLink = document.getElementById('practiceLink');
+  muscleGroup.addEventListener('change', () => {
+    practiceLink.href = `Quiz3.html?mode=group&group=${encodeURIComponent(muscleGroup.value)}`;
+  });
+
+  try {
+    const daily = JSON.parse(localStorage.getItem('mq_daily') || '{}');
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const daysSinceLastChallenge = Math.round((new Date(`${today}T00:00:00`) - new Date(`${daily.lastDate || '2000-01-01'}T00:00:00`)) / 86400000);
+    const streak = daily.lastDate === today || daysSinceLastChallenge === 1 ? daily.streak || 1 : 0;
+    document.getElementById('dailyStatus').textContent = daily.lastDate === today
+      ? `Completed today · 🔥 ${streak}-day streak`
+      : `Current streak · 🔥 ${streak} days`;
+  } catch (error) {
+    console.warn('Could not read daily challenge progress:', error);
+  }
+
+  const badgeLabels = {
+    first_quiz: ['First Steps', 'Completed a quiz'],
+    pass_score: ['Well Done', 'Scored 70% or higher in a level'],
+    perfect_score: ['Perfect Score', 'Answered every level question correctly'],
+    daily_complete: ['Daily Challenger', 'Completed a daily challenge'],
+    daily_3: ['Three-Day Streak', 'Completed the daily challenge 3 days in a row'],
+    daily_7: ['Week Streak', 'Completed the daily challenge 7 days in a row'],
+    flappy_10: ['High Flyer', 'Scored 10 in Flappy Muscles'],
+    flappy_boss: ['Boss Encounter', 'Reached the level 999 boss']
+  };
+  try {
+    const earned = JSON.parse(localStorage.getItem('mq_badges') || '[]');
+    const badgeList = document.getElementById('homeBadgeList');
+    const badges = earned.filter(id => badgeLabels[id]);
+    if (!badges.length) {
+      badgeList.textContent = 'Complete quizzes and games to earn badges.';
+    } else {
+      for (const id of badges) {
+        const badge = document.createElement('p');
+        badge.className = 'rounded-xl border border-amber-400/30 bg-slate-900/70 px-3 py-2';
+        const name = document.createElement('strong');
+        name.className = 'text-amber-300';
+        name.textContent = badgeLabels[id][0];
+        const description = document.createElement('span');
+        description.className = 'ml-2 text-slate-400';
+        description.textContent = badgeLabels[id][1];
+        badge.append(name, description);
+        badgeList.append(badge);
+      }
+    }
+  } catch (error) {
+    console.warn('Could not read achievements:', error);
+    document.getElementById('homeBadgeList').textContent = 'Achievements could not be loaded.';
+  }
 
   document.addEventListener('click', e => {
     const el = e.target.closest('a[href], button');
