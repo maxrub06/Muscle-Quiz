@@ -92,7 +92,7 @@ dialog::backdrop {
     </div>
   </section>
 
-  <a href="flappy-muscles.html" class="level-card group mt-5 flex items-center justify-between gap-4 rounded-2xl border border-violet-400/40 bg-violet-950/70 p-4 text-slate-100 shadow-lg shadow-violet-950/20 hover:border-violet-300 hover:bg-violet-900/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 sm:p-5">
+  <a id="minigameCard" href="flappy-muscles.html" class="level-card group mt-5 flex items-center justify-between gap-4 rounded-2xl border border-violet-400/40 bg-violet-950/70 p-4 text-slate-100 shadow-lg shadow-violet-950/20 hover:border-violet-300 hover:bg-violet-900/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 sm:p-5">
     <span class="min-w-0">
       <span class="mb-1 block text-xs font-bold uppercase tracking-wider text-violet-300">Minigame</span>
       <span class="block text-lg font-bold">Flappy Muscles</span>
@@ -138,6 +138,20 @@ dialog::backdrop {
     </span>
     <input id="gameSounds" type="checkbox" class="h-5 w-5 shrink-0 accent-amber-400">
   </label>
+  <label for="showMinigames" class="flex cursor-pointer items-center justify-between gap-4 border-t border-slate-700 px-5 py-5">
+    <span>
+      <span class="block font-semibold">Show minigames button</span>
+      <span class="mt-1 block text-sm text-slate-400">Show or hide the minigame link on the home screen</span>
+    </span>
+    <input id="showMinigames" type="checkbox" class="h-5 w-5 shrink-0 accent-amber-400">
+  </label>
+  <label for="backgroundMusic" class="flex cursor-pointer items-center justify-between gap-4 border-t border-slate-700 px-5 py-5">
+    <span>
+      <span class="block font-semibold">Background music</span>
+      <span id="musicStatus" class="mt-1 block text-sm text-slate-400" aria-live="polite">Original, gentle menu music</span>
+    </span>
+    <input id="backgroundMusic" type="checkbox" class="h-5 w-5 shrink-0 accent-amber-400">
+  </label>
   <div class="border-t border-slate-700 px-5 py-4">
     <button id="installApp" type="button" class="w-full rounded-xl bg-amber-400 px-4 py-3 text-sm font-bold text-slate-900 transition hover:bg-amber-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200">Download app</button>
     <p id="installMessage" class="mt-2 text-center text-xs text-slate-400" aria-live="polite">Install options depend on your browser. HTTPS or localhost is required.</p>
@@ -149,11 +163,24 @@ dialog::backdrop {
   const settingsDialog = document.getElementById('settingsDialog');
   const buttonSounds = document.getElementById('buttonSounds');
   const gameSounds = document.getElementById('gameSounds');
+  const showMinigames = document.getElementById('showMinigames');
+  const minigameCard = document.getElementById('minigameCard');
+  const backgroundMusic = document.getElementById('backgroundMusic');
+  const musicStatus = document.getElementById('musicStatus');
   const installButton = document.getElementById('installApp');
   const installMessage = document.getElementById('installMessage');
   const soundSettingKey = 'mq_button_sounds';
   const gameSoundSettingKey = 'mq_flappy_sounds';
+  const minigamesSettingKey = 'mq_show_minigames';
+  const musicSettingKey = 'mq_background_music';
   let installPrompt = null;
+  let musicContext = null;
+  let musicTimer = null;
+  let musicStep = 0;
+  const musicNotes = [
+    [261.63, 329.63, 392.00], [220.00, 261.63, 329.63],
+    [174.61, 220.00, 261.63], [196.00, 246.94, 293.66]
+  ];
 
   function soundsEnabled() {
     try { return localStorage.getItem(soundSettingKey) !== 'false'; }
@@ -171,8 +198,97 @@ dialog::backdrop {
     }
   }
 
+  function minigamesVisible() {
+    try { return localStorage.getItem(minigamesSettingKey) !== 'false'; }
+    catch (error) {
+      console.warn('Could not read the minigame visibility setting:', error);
+      return true;
+    }
+  }
+
+  function musicEnabled() {
+    try { return localStorage.getItem(musicSettingKey) === 'true'; }
+    catch (error) {
+      console.warn('Could not read the background music setting:', error);
+      return false;
+    }
+  }
+
+  function playMusicNote(frequency, start, duration, volume) {
+    const oscillator = musicContext.createOscillator();
+    const gain = musicContext.createGain();
+    oscillator.type = 'sine';
+    oscillator.frequency.value = frequency;
+    gain.gain.setValueAtTime(0.001, start);
+    gain.gain.exponentialRampToValueAtTime(volume, start + 0.12);
+    gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
+    oscillator.connect(gain);
+    gain.connect(musicContext.destination);
+    oscillator.start(start);
+    oscillator.stop(start + duration);
+  }
+
+  function playMusicBar() {
+    const notes = musicNotes[musicStep % musicNotes.length];
+    const start = musicContext.currentTime + 0.05;
+    notes.forEach((note, index) => playMusicNote(note, start, 1.65, 0.025));
+    playMusicNote(notes[2] * 2, start + 0.4, 0.45, 0.012);
+    playMusicNote(notes[1] * 2, start + 1.0, 0.45, 0.01);
+    musicStep++;
+  }
+
+  function stopMusic() {
+    if (musicTimer !== null) {
+      clearInterval(musicTimer);
+      musicTimer = null;
+    }
+    if (musicContext && musicContext.state !== 'closed') {
+      musicContext.close().catch(error => console.warn('Could not stop background music:', error));
+      musicContext = null;
+    }
+  }
+
+  function startMusic() {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) {
+      backgroundMusic.checked = false;
+      try { localStorage.setItem(musicSettingKey, 'false'); }
+      catch (error) { console.warn('Could not save the background music setting:', error); }
+      musicStatus.textContent = 'Background music is not supported in this browser.';
+      return;
+    }
+    try {
+      musicContext = new AudioContext();
+      musicContext.resume().then(() => {
+        if (!backgroundMusic.checked) {
+          stopMusic();
+          return;
+        }
+        musicStep = 0;
+        playMusicBar();
+        musicTimer = setInterval(playMusicBar, 1800);
+        musicStatus.textContent = 'Music is playing · Original, gentle menu music';
+      }).catch(error => {
+        console.warn('Could not start background music:', error);
+        backgroundMusic.checked = false;
+        try { localStorage.setItem(musicSettingKey, 'false'); }
+        catch (storageError) { console.warn('Could not save the background music setting:', storageError); }
+        musicStatus.textContent = 'Background music could not be started.';
+      });
+    } catch (error) {
+      console.warn('Could not create background music:', error);
+      backgroundMusic.checked = false;
+      try { localStorage.setItem(musicSettingKey, 'false'); }
+      catch (storageError) { console.warn('Could not save the background music setting:', storageError); }
+      musicStatus.textContent = 'Background music could not be started.';
+    }
+  }
+
   buttonSounds.checked = soundsEnabled();
   gameSounds.checked = gameSoundsEnabled();
+  showMinigames.checked = minigamesVisible();
+  minigameCard.hidden = !showMinigames.checked;
+  backgroundMusic.checked = musicEnabled();
   document.getElementById('settingsButton').addEventListener('click', () => settingsDialog.showModal());
   document.getElementById('closeSettings').addEventListener('click', () => settingsDialog.close());
   buttonSounds.addEventListener('change', () => {
@@ -182,6 +298,20 @@ dialog::backdrop {
   gameSounds.addEventListener('change', () => {
     try { localStorage.setItem(gameSoundSettingKey, String(gameSounds.checked)); }
     catch (error) { console.warn('Could not save the minigame sound setting:', error); }
+  });
+  showMinigames.addEventListener('change', () => {
+    minigameCard.hidden = !showMinigames.checked;
+    try { localStorage.setItem(minigamesSettingKey, String(showMinigames.checked)); }
+    catch (error) { console.warn('Could not save the minigame visibility setting:', error); }
+  });
+  backgroundMusic.addEventListener('change', () => {
+    try { localStorage.setItem(musicSettingKey, String(backgroundMusic.checked)); }
+    catch (error) { console.warn('Could not save the background music setting:', error); }
+    if (backgroundMusic.checked) startMusic();
+    else {
+      stopMusic();
+      musicStatus.textContent = 'Original, gentle menu music';
+    }
   });
   window.addEventListener('beforeinstallprompt', event => {
     event.preventDefault();
