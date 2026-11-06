@@ -7,7 +7,11 @@
 <title>Muscario – Muscle Quest</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-html, body { min-height: 100%; }
+html, body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
 body { background-image: radial-gradient(ellipse at 50% 0%, rgb(167 139 250 / 12%), transparent 48%); }
 main.game-layout {
   display: flex;
@@ -84,6 +88,8 @@ canvas.arena-canvas {
   const startButton = document.getElementById('startButton');
   const playerNameInput = document.getElementById('playerName');
   const statusElement = document.getElementById('status');
+  const clickSound = new Audio('click.wav');
+  const soundSettingKey = 'mq_flappy_sounds';
   const apiUrl = new URL('api/muscario.php', location.href);
   const world = { width: 2800, height: 1900 };
   const colors = ['#34d399', '#f472b6', '#60a5fa', '#fbbf24', '#a78bfa', '#fb7185', '#2dd4bf'];
@@ -117,6 +123,24 @@ canvas.arena-canvas {
   let heartbeatTimer = null;
   let networkBusy = false;
   let networkErrorShown = false;
+
+  function soundsEnabled() {
+    try { return localStorage.getItem(soundSettingKey) !== 'false'; }
+    catch (error) {
+      console.warn('Could not read the minigame sound setting:', error);
+      return true;
+    }
+  }
+
+  function playButtonSound() {
+    if (!soundsEnabled()) return;
+    try {
+      clickSound.currentTime = 0;
+      clickSound.play().catch(error => console.warn('Could not play the button sound:', error));
+    } catch (error) {
+      console.warn('Could not play the button sound:', error);
+    }
+  }
 
   function getPlayerId() {
     try {
@@ -565,9 +589,13 @@ canvas.arena-canvas {
     })], { type: 'application/json' });
     navigator.sendBeacon(apiUrl, body);
   });
-  startButton.addEventListener('click', startGame);
+  startButton.addEventListener('click', () => {
+    playButtonSound();
+    startGame();
+  });
   document.querySelector('header a').addEventListener('click', event => {
     event.preventDefault();
+    playButtonSound();
     const destination = event.currentTarget.href;
     setTimeout(() => { location.href = destination; }, 120);
   });
