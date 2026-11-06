@@ -44,6 +44,8 @@ function loadPic(q) {
     src && !/\.svg/i.test(src) ? show(src, q.n) : fallback();
   }).catch(fallback);
 }
+const SND = { correct: new Audio('correct.wav'), fail: new Audio('fail.wav') };
+const play = k => { try { SND[k].currentTime = 0; SND[k].play().catch(() => {}); } catch (e) {} };
 const COUNT = { 1: 10, 2: 30, 3: Infinity };
 const sh = a => a.map(x => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map(x => x[1]);
 
@@ -77,6 +79,7 @@ loadMuscles().then(function (M) {
   function answer(btn, q) {
     const ok = btn.dataset.n === q.n;
     if (ok) s++;
+    play(ok ? 'correct' : 'fail');
     app.querySelectorAll('.opt').forEach(b => {
       b.disabled = true;
       if (b.dataset.n === q.n) b.className = 'opt w-full text-left bg-emerald-600 border border-emerald-400 rounded-xl px-4 py-4';
@@ -103,6 +106,20 @@ loadMuscles().then(function (M) {
 
   render();
 }).catch(() => { document.getElementById('app').innerHTML = '<p class="text-rose-400">Could not load the muscle data (muscles.json / muscles.js).</p>'; });
+</script>
+<script>
+(function () {
+  const click = new Audio('click.wav');
+  document.addEventListener('click', e => {
+    const el = e.target.closest('a[href], button');
+    if (!el || el.classList.contains('opt') || el.disabled) return;
+    try { click.currentTime = 0; click.play().catch(() => {}); } catch (err) {}
+    if (el.tagName === 'A' && !el.target && e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+      e.preventDefault();
+      setTimeout(() => { location.href = el.href; }, 150);
+    }
+  });
+})();
 </script>
 </body>
 </html>

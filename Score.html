@@ -5,14 +5,106 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Muscle Quest – Results</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<style>
+@keyframes confetti-fall {
+  to { transform: translateY(110vh) rotate(720deg); }
+}
+.confetti {
+  position: fixed;
+  top: -12px;
+  z-index: 10;
+  width: 9px;
+  height: 14px;
+  pointer-events: none;
+  animation: confetti-fall 2.8s linear forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .confetti { animation: none; top: 50vh; }
+}
+@keyframes failure-flash {
+  0% { opacity: 0.85; }
+  100% { opacity: 0.14; }
+}
+@keyframes failure-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+@keyframes failure-pulse {
+  0%, 100% { box-shadow: 0 0 22px var(--outcome-glow-soft); }
+  50% { box-shadow: 0 0 42px var(--outcome-glow-strong); }
+}
+@keyframes failure-burst {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.2); }
+  18% { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--x), var(--y)) scale(0.3); }
+}
+.game-over {
+  --outcome-center: #7f1d1d;
+  --outcome-mid: #450a0a;
+  --outcome-edge: #1c0505;
+  --outcome-vignette: rgb(127 29 29 / 80%);
+  --outcome-border: rgb(248 113 113 / 50%);
+  --outcome-glow-soft: rgb(239 68 68 / 20%);
+  --outcome-glow-strong: rgb(239 68 68 / 55%);
+  --outcome-particle: #fca5a5;
+  --outcome-particle-glow: #ef4444;
+}
+.game-won {
+  --outcome-center: #047857;
+  --outcome-mid: #064e3b;
+  --outcome-edge: #022c22;
+  --outcome-vignette: rgb(6 78 59 / 80%);
+  --outcome-border: rgb(110 231 183 / 55%);
+  --outcome-glow-soft: rgb(16 185 129 / 22%);
+  --outcome-glow-strong: rgb(16 185 129 / 60%);
+  --outcome-particle: #a7f3d0;
+  --outcome-particle-glow: #10b981;
+}
+.game-over, .game-won {
+  background: radial-gradient(ellipse at center, var(--outcome-center) 0%, var(--outcome-mid) 70%, var(--outcome-edge) 100%) !important;
+}
+.game-over::before, .game-won::before {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 35%, var(--outcome-vignette) 100%);
+  content: "";
+  pointer-events: none;
+  animation: failure-flash 1.6s ease-out forwards;
+}
+.game-over main, .game-won main { position: relative; z-index: 1; animation: failure-shake 0.45s ease-in-out 2; }
+.game-over .result-card, .game-won .result-card { border: 1px solid var(--outcome-border); animation: failure-pulse 1.8s ease-in-out infinite; }
+.failure-particle {
+  position: fixed;
+  top: 45vh;
+  left: 50vw;
+  z-index: 21;
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--outcome-particle);
+  box-shadow: 0 0 12px 4px var(--outcome-particle-glow);
+  pointer-events: none;
+  animation: failure-burst 1.5s ease-out var(--delay) forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .game-over::before, .game-won::before { animation: none; opacity: 0.3; }
+  .game-over main, .game-over .result-card, .game-won main, .game-won .result-card { animation: none; }
+  .failure-particle { display: none; }
+}
+</style>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen">
+<div id="confetti" aria-hidden="true"></div>
+<div id="failureEffects" aria-hidden="true"></div>
 <main class="max-w-md mx-auto p-6">
   <h1 class="text-3xl font-extrabold text-amber-400 text-center mb-6">Results</h1>
   <div id="res"></div>
   <h2 class="font-bold mt-8 mb-3">Best results</h2>
   <div id="best" class="grid gap-2"></div>
   <div class="grid gap-3 mt-8">
+    <a id="lb" href="leaderboard.html" style="display:none" class="text-center bg-emerald-600 font-bold rounded-xl py-4">Save to leaderboard</a>
     <a id="again" href="index.html" class="block text-center bg-amber-400 text-slate-900 font-bold rounded-xl py-4">Play again</a>
     <a href="index.html" class="block text-center bg-slate-800 rounded-xl py-4">Home</a>
   </div>
@@ -22,12 +114,109 @@ const p = new URLSearchParams(location.search);
 const l = +p.get('l'), s = +p.get('s'), t = +p.get('t');
 if (l && t) {
   const pct = Math.round(s / t * 100);
-  const msg = pct === 100 ? 'Perfect! 🏆' : pct >= 70 ? 'Great job! 💪' : pct >= 40 ? 'Good start – keep training!' : 'Time to review your anatomy 📚';
-  document.getElementById('res').innerHTML = `<div class="bg-slate-800 rounded-2xl p-6 text-center"><p class="text-slate-400">Level ${l}</p><p class="text-6xl font-extrabold my-2">${s}/${t}</p><p class="text-2xl text-amber-400">${pct}%</p><p class="mt-3">${msg}</p></div>`;
+  const passed = pct >= 70;
+  const msg = passed ? (pct === 100 ? 'Perfect! 🏆' : 'Great job! 💪') : 'Time to review your anatomy 📚';
+  document.getElementById('res').innerHTML = `<div class="${passed ? 'bg-emerald-950' : 'bg-red-950'} result-card rounded-2xl p-6 text-center"><p class="text-3xl font-extrabold ${passed ? 'text-emerald-400' : 'text-rose-400'}">${passed ? 'CHEERS! 🎉' : 'GAME OVER'}</p><p class="text-slate-400 mt-2">Level ${l}</p><p class="text-6xl font-extrabold my-2">${s}/${t}</p><p class="text-2xl text-amber-400">${pct}%</p><p class="mt-3">${msg}</p><button id="replaySound" type="button" class="hidden mt-5 text-sm text-slate-400 underline">Play sound</button></div>`;
+  document.body.classList.add(passed ? 'game-won' : 'game-over');
+  const effects = document.getElementById('failureEffects');
+  for (let i = 0; i < 32; i++) {
+    const particle = document.createElement('span');
+    const angle = Math.random() * Math.PI * 2;
+    const distance = 90 + Math.random() * 180;
+    particle.className = 'failure-particle';
+    particle.style.setProperty('--x', `${Math.cos(angle) * distance}px`);
+    particle.style.setProperty('--y', `${Math.sin(angle) * distance}px`);
+    particle.style.setProperty('--delay', `${Math.random() * 0.2}s`);
+    effects.appendChild(particle);
+  }
   document.getElementById('again').href = `quiz${l}.html`;
+  const lb = document.getElementById('lb'); lb.href = `leaderboard.html?l=${l}&s=${s}&t=${t}`; lb.style.display = 'block';
+
+  function playEndingSound() {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return Promise.reject(new Error('Web Audio is not supported.'));
+    const context = new AudioContext();
+    const start = context.currentTime + 0.05;
+    const tone = (frequency, offset, duration, volume = 0.16) => {
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      oscillator.type = 'triangle';
+      oscillator.frequency.value = frequency;
+      gain.gain.setValueAtTime(0.001, start + offset);
+      gain.gain.exponentialRampToValueAtTime(volume, start + offset + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + offset + duration);
+      oscillator.connect(gain);
+      gain.connect(context.destination);
+      oscillator.start(start + offset);
+      oscillator.stop(start + offset + duration);
+    };
+
+    if (passed) {
+      [523, 659, 784, 1047, 1319].forEach((frequency, index) => tone(frequency, index * 0.12, 0.28));
+      const length = context.sampleRate;
+      const buffer = context.createBuffer(1, length, context.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < length; i++) data[i] = Math.random() * 2 - 1;
+      const noise = context.createBufferSource();
+      const filter = context.createBiquadFilter();
+      const cheerGain = context.createGain();
+      noise.buffer = buffer;
+      filter.type = 'bandpass';
+      filter.frequency.value = 1100;
+      filter.Q.value = 0.6;
+      cheerGain.gain.setValueAtTime(0.001, start + 0.25);
+      cheerGain.gain.exponentialRampToValueAtTime(0.09, start + 0.45);
+      cheerGain.gain.exponentialRampToValueAtTime(0.001, start + 1);
+      noise.connect(filter);
+      filter.connect(cheerGain);
+      cheerGain.connect(context.destination);
+      noise.start(start + 0.25);
+      noise.stop(start + 1);
+    } else {
+      [392, 330, 262, 196].forEach((frequency, index) => tone(frequency, index * 0.32, 0.38, 0.2));
+    }
+
+    return context.resume();
+  }
+
+  if (passed) {
+    const colors = ['#f87171', '#fbbf24', '#34d399', '#60a5fa', '#c084fc'];
+    const confetti = document.getElementById('confetti');
+    for (let i = 0; i < 48; i++) {
+      const piece = document.createElement('span');
+      piece.className = 'confetti';
+      piece.style.left = `${Math.random() * 100}vw`;
+      piece.style.backgroundColor = colors[i % colors.length];
+      piece.style.animationDelay = `${Math.random() * 0.8}s`;
+      confetti.appendChild(piece);
+    }
+  }
+
+  playEndingSound().catch(error => {
+    console.warn('Could not play the result sound:', error);
+    const replay = document.getElementById('replaySound');
+    replay.classList.remove('hidden');
+    replay.addEventListener('click', () => {
+      playEndingSound().catch(soundError => console.error('Could not play the result sound:', soundError));
+    });
+  });
 } else document.getElementById('res').innerHTML = '<p class="text-center text-slate-400">No quiz played yet.</p>';
 let d = {}; try { d = JSON.parse(localStorage.getItem('mq') || '{}'); } catch (e) {}
 document.getElementById('best').innerHTML = [1, 2, 3].map(n => `<div class="flex justify-between bg-slate-800 rounded-xl px-4 py-3"><span>Level ${n}</span><span class="font-bold">${d[n] != null ? d[n] + '%' : '–'}</span></div>`).join('');
+</script>
+<script>
+(function () {
+  const click = new Audio('click.wav');
+  document.addEventListener('click', e => {
+    const el = e.target.closest('a[href], button');
+    if (!el || el.classList.contains('opt') || el.disabled) return;
+    try { click.currentTime = 0; click.play().catch(() => {}); } catch (err) {}
+    if (el.tagName === 'A' && !el.target && e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+      e.preventDefault();
+      setTimeout(() => { location.href = el.href; }, 150);
+    }
+  });
+})();
 </script>
 </body>
 </html>

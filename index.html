@@ -3,19 +3,94 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0f172a">
 <title>Muscle Quest</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<style>
+body {
+  background-image: radial-gradient(ellipse at 50% 0%, rgb(245 158 11 / 12%), transparent 48%);
+}
+.level-card {
+  transition: transform 160ms ease, border-color 160ms ease, filter 160ms ease;
+}
+.level-card:hover { transform: translateY(-2px); filter: brightness(1.08); }
+.level-card:active { transform: scale(0.985); }
+@media (prefers-reduced-motion: reduce) {
+  .level-card { transition: none; }
+  .level-card:hover, .level-card:active { transform: none; }
+}
+</style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen">
-<main class="max-w-md mx-auto p-6 flex flex-col min-h-screen justify-center">
-  <h1 class="text-4xl font-extrabold text-amber-400 text-center">💪 Muscle Quest</h1>
-  <p class="text-center text-slate-400 mt-2 mb-8">How well do you know the muscles of the body?</p>
-  <div class="grid gap-4">
-    <a href="quiz1.html" class="block bg-emerald-600 rounded-2xl p-5 active:scale-95 transition"><span class="font-bold text-lg">Level 1 – Beginner</span><br><span class="text-sm opacity-80">10 questions</span></a>
-    <a href="quiz2.html" class="block bg-amber-500 text-slate-900 rounded-2xl p-5 active:scale-95 transition"><span class="font-bold text-lg">Level 2 – Intermediate</span><br><span class="text-sm opacity-80">30 questions</span></a>
-    <a href="quiz3.html" class="block bg-rose-600 rounded-2xl p-5 active:scale-95 transition"><span class="font-bold text-lg">Level 3 – Expert</span><br><span class="text-sm opacity-80">All muscles</span></a>
-  </div>
-  <a href="score.html" class="text-center text-slate-400 underline mt-8">My best results</a>
+<body class="min-h-screen bg-slate-900 text-slate-100">
+<main class="mx-auto flex min-h-screen max-w-xl flex-col justify-center px-5 py-10 sm:px-8">
+  <header class="mb-8 text-center">
+    <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border border-amber-400/20 bg-white shadow-lg shadow-amber-950/20">
+      <img src="rhode.jpg" alt="Seal of the State of Rhode Island" class="h-full w-full object-cover">
+    </div>
+    <p class="mb-2 text-xs font-bold uppercase tracking-[0.25em] text-amber-400">Train your anatomy</p>
+    <h1 class="text-4xl font-extrabold tracking-tight text-slate-100 sm:text-5xl">Muscle <span class="text-amber-400">Quest</span></h1>
+    <p class="mx-auto mt-3 max-w-sm text-slate-400">How well do you know the muscles of the body?</p>
+  </header>
+
+  <section aria-labelledby="levels-heading">
+    <div class="mb-3 flex items-center justify-between px-1">
+      <h2 id="levels-heading" class="text-sm font-bold uppercase tracking-wider text-slate-400">Choose your level</h2>
+      <span class="text-xs text-slate-500">3 challenges</span>
+    </div>
+    <nav class="grid gap-3" aria-label="Quiz levels">
+      <a href="quiz1.html" class="level-card group flex items-center gap-4 rounded-2xl border border-emerald-400/50 bg-emerald-950/70 p-4 shadow-lg shadow-black/10 hover:border-emerald-300 hover:bg-emerald-900/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 sm:p-5">
+        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-500/30 text-sm font-extrabold tracking-wider text-emerald-200" aria-hidden="true">▶</span>
+        <span class="min-w-0 flex-1">
+          <span class="block text-lg font-bold text-slate-100">Beginner</span>
+          <span class="mt-0.5 block text-sm text-slate-400">Level 1 <span aria-hidden="true">·</span> 10 questions</span>
+        </span>
+        <span class="text-xl text-emerald-400 transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
+      </a>
+      <a href="quiz2.html" class="level-card group flex items-center gap-4 rounded-2xl border border-amber-400/50 bg-amber-950/70 p-4 shadow-lg shadow-black/10 hover:border-amber-300 hover:bg-amber-900/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 sm:p-5">
+        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-500/30 text-sm font-extrabold tracking-wider text-amber-200" aria-hidden="true">▶</span>
+        <span class="min-w-0 flex-1">
+          <span class="block text-lg font-bold text-slate-100">Intermediate</span>
+          <span class="mt-0.5 block text-sm text-slate-400">Level 2 <span aria-hidden="true">·</span> 30 questions</span>
+        </span>
+        <span class="text-xl text-amber-400 transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
+      </a>
+      <a href="quiz3.html" class="level-card group flex items-center gap-4 rounded-2xl border border-rose-400/50 bg-rose-950/70 p-4 shadow-lg shadow-black/10 hover:border-rose-300 hover:bg-rose-900/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 sm:p-5">
+        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-rose-500/30 text-sm font-extrabold tracking-wider text-rose-200" aria-hidden="true">▶</span>
+        <span class="min-w-0 flex-1">
+          <span class="block text-lg font-bold text-slate-100">Expert</span>
+          <span class="mt-0.5 block text-sm text-slate-400">Level 3 <span aria-hidden="true">·</span> All muscles</span>
+        </span>
+        <span class="text-xl text-rose-400 transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
+      </a>
+    </nav>
+  </section>
+
+  <nav class="mt-6 grid grid-cols-2 gap-3" aria-label="More options">
+    <a href="score.html" class="rounded-xl border border-slate-700 bg-slate-800/70 px-4 py-4 text-center transition hover:border-amber-400/50 hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400">
+      <span class="mb-1 block text-lg" aria-hidden="true">🏆</span>
+      <span class="block text-sm font-bold">My results</span>
+      <span class="mt-1 block text-xs text-slate-400">Personal bests</span>
+    </a>
+    <a href="leaderboard.html" class="rounded-xl border border-slate-700 bg-slate-800/70 px-4 py-4 text-center transition hover:border-amber-400/50 hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400">
+      <span class="mb-1 block text-lg" aria-hidden="true">📋</span>
+      <span class="block text-sm font-bold">Leaderboard</span>
+      <span class="mt-1 block text-xs text-slate-400">School scores</span>
+    </a>
+  </nav>
 </main>
+<script>
+(function () {
+  const click = new Audio('click.wav');
+  document.addEventListener('click', e => {
+    const el = e.target.closest('a[href], button');
+    if (!el || el.classList.contains('opt') || el.disabled) return;
+    try { click.currentTime = 0; click.play().catch(() => {}); } catch (err) {}
+    if (el.tagName === 'A' && !el.target && e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+      e.preventDefault();
+      setTimeout(() => { location.href = el.href; }, 150);
+    }
+  });
+})();
+</script>
 </body>
 </html>
