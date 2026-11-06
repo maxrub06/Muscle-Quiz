@@ -7,10 +7,32 @@
 <title>Flappy Muscles – Muscle Quest</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
+html, body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
 body {
   background-image: radial-gradient(ellipse at 50% 0%, rgb(167 139 250 / 12%), transparent 48%);
 }
-canvas { touch-action: manipulation; }
+main {
+  display: flex;
+  height: 100vh;
+  height: 100dvh;
+  flex-direction: column;
+}
+section {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+}
+canvas {
+  min-height: 0;
+  height: 0;
+  flex: 1;
+  touch-action: manipulation;
+}
 </style>
 </head>
 <body class="min-h-screen bg-slate-900 text-slate-100">
