@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0f172a">
+<title>Flappy Muscles – Muscle Quest</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+body {
+  background-image: radial-gradient(ellipse at 50% 0%, rgb(167 139 250 / 12%), transparent 48%);
+}
+canvas { touch-action: manipulation; }
+</style>
+</head>
+<body class="min-h-screen bg-slate-900 text-slate-100">
+<main class="mx-auto max-w-md px-5 py-6 sm:px-6">
+  <header class="mb-5 flex items-center justify-between">
+    <a href="index.html" class="text-sm text-slate-400 hover:text-white">← Home</a>
+    <span class="rounded-full bg-violet-500/15 px-3 py-1 text-xs font-bold uppercase tracking-wider text-violet-300">Minigame</span>
+  </header>
+
+  <h1 class="text-center text-3xl font-extrabold text-violet-300">Flappy Muscles</h1>
+  <p class="mt-2 text-center text-sm text-slate-400">Flap through the gaps and see how far you get.</p>
+
+  <section class="mt-5 rounded-2xl border border-slate-700 bg-slate-800 p-3 shadow-xl shadow-black/20" aria-label="Flappy Muscles game">
+    <div class="mb-3 flex items-center justify-between px-1 text-sm">
+      <span class="text-slate-400">Score <strong id="score" class="ml-1 text-lg text-white">0</strong></span>
+      <span class="text-slate-400">Best <strong id="best" class="ml-1 text-lg text-amber-300">0</strong></span>
+    </div>
+    <button id="play" type="button" class="mb-3 w-full rounded-xl bg-violet-500 py-3 font-bold text-white transition hover:bg-violet-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800">Fly!</button>
+    <canvas id="game" class="block w-full rounded-xl bg-sky-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400" width="360" height="560" tabindex="0" role="img" aria-label="Flappy Muscles game. Press Space, Arrow Up, or tap to flap."></canvas>
+    <p id="message" class="mt-3 min-h-10 text-center text-sm text-slate-300" aria-live="polite">Press Fly, Space, or tap the game to start.</p>
+  </section>
+
+  <p class="mt-4 text-center text-xs text-slate-500">Tap, click, press Space, or press ↑ to flap.</p>
+</main>
+<script>
+(() => {
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const scoreElement = document.getElementById('score');
+  const bestElement = document.getElementById('best');
+  const messageElement = document.getElementById('message');
+  const playButton = document.getElementById('play');
+  const width = 360;
+  const height = 560;
+  const bird = { x: 92, y: 250, velocity: 0, radius: 19 };
+  const pipes = [];
+  const gap = 166;
+  const pipeWidth = 66;
+  let state = 'ready';
+  let score = 0;
+  let best = 0;
+  let lastTime = 0;
+  let spawnTimer = 0;
+  let audioContext = null;
+  const clickSound = new Audio('click.wav');
+
+  function getAudioContext() {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) {
+      console.warn('Game sound is not supported in this browser.');
+      return null;
+    }
+    if (!audioContext) audioContext = new AudioContext();
+    if (audioContext.state === 'suspended') {
+      audioContext.resume().catch(error => console.warn('Could not start game audio:', error));
+    }
+    return audioContext;
+  }
+
+  function playTone(frequency, endFrequency, duration, type = 'sine', volume = 0.12) {
+    const context = getAudioContext();
+    if (!context) return;
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    const start = context.currentTime;
+    oscillator.type = type;
+    oscillator.frequency.setValueAtTime(frequency, start);
+    oscillator.frequency.exponentialRampToValueAtTime(endFrequency, start + duration);
+    gain.gain.setValueAtTime(volume, start);
+    gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+    oscillator.start(start);
+    oscillator.stop(start + duration);
+  }
+
+  function playFlapSound() {
+    playTone(620, 880, 0.09, 'sine', 0.08);
+  }
+
+  function playScoreSound() {
+    playTone(880, 1175, 0.12, 'square', 0.06);
+    setTimeout(() => playTone(1175, 1568, 0.14, 'square', 0.06), 75);
+  }
+
+  function playCrashSound() {
+    const context = getAudioContext();
+    if (!context) return;
+    const length = Math.floor(context.sampleRate * 0.22);
+    const buffer = context.createBuffer(1, length, context.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < length; i++) data[i] = Math.random() * 2 - 1;
+    const noise = context.createBufferSource();
+    const filter = context.createBiquadFilter();
+    const gain = context.createGain();
+    const start = context.currentTime;
+    noise.buffer = buffer;
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(900, start);
+    filter.frequency.exponentialRampToValueAtTime(100, start + 0.22);
+    gain.gain.setValueAtTime(0.18, start);
+    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.22);
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(context.destination);
+    noise.start(start);
+    noise.stop(start + 0.22);
+    playTone(240, 65, 0.28, 'sawtooth', 0.12);
+  }
+
+  function playButtonSound() {
+    try {
+      clickSound.currentTime = 0;
+      clickSound.play().catch(error => console.warn('Could not play the button sound:', error));
+    } catch (error) {
+      console.warn('Could not play the button sound:', error);
+    }
+  }
+
+  try {
+    best = Number(localStorage.getItem('flappyMusclesBest')) || 0;
+  } catch (error) {
+    console.warn('Could not read the Flappy Muscles best score:', error);
+  }
+  bestElement.textContent = best;
+
+  function reset() {
+    bird.y = 250;
+    bird.velocity = 0;
+    pipes.length = 0;
+    score = 0;
+    spawnTimer = 0;
+    addPipe(width - 115);
+    scoreElement.textContent = score;
+  }
+
+  function start() {
+    reset();
+    state = 'playing';
+    bird.velocity = -390;
+    playFlapSound();
+    messageElement.textContent = 'Flap through the gaps!';
+    playButton.textContent = 'Restart';
+  }
+
+  function flap() {
+    if (state !== 'playing') {
+      start();
+      return;
+    }
+    bird.velocity = -390;
+    playFlapSound();
+  }
+
+  function addPipe(x = width + pipeWidth) {
+    const top = 105 + Math.random() * 185;
+    pipes.push({ x, top, scored: false });
+  }
+
+  function endGame() {
+    state = 'over';
+    playCrashSound();
+    messageElement.textContent = `Game over! You scored ${score}. Tap or press Fly to try again.`;
+    playButton.textContent = 'Play again';
+    if (score > best) {
+      best = score;
+      bestElement.textContent = best;
+      try {
+        localStorage.setItem('flappyMusclesBest', String(best));
+      } catch (error) {
+        console.warn('Could not save the Flappy Muscles best score:', error);
+      }
+    }
+  }
+
+  function drawBackground() {
+    const sky = ctx.createLinearGradient(0, 0, 0, height);
+    sky.addColorStop(0, '#0c4a6e');
+    sky.addColorStop(1, '#164e63');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.fillStyle = 'rgba(255,255,255,0.08)';
+    for (const [x, y, radius] of [[48, 85, 30], [265, 150, 42], [185, 345, 24]]) {
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.fillStyle = '#0f766e';
+    ctx.beginPath();
+    ctx.moveTo(0, height - 42);
+    ctx.quadraticCurveTo(95, height - 110, 190, height - 45);
+    ctx.quadraticCurveTo(275, height - 105, width, height - 48);
+    ctx.lineTo(width, height);
+    ctx.lineTo(0, height);
+    ctx.fill();
+    ctx.fillStyle = '#134e4a';
+    ctx.fillRect(0, height - 22, width, 22);
+  }
+
+  function drawPipe(pipe) {
+    const bottomY = pipe.top + gap;
+    ctx.fillStyle = '#7c3aed';
+    ctx.strokeStyle = '#c4b5fd';
+    ctx.lineWidth = 3;
+    ctx.fillRect(pipe.x, 0, pipeWidth, pipe.top);
+    ctx.strokeRect(pipe.x, -2, pipeWidth, pipe.top);
+    ctx.fillRect(pipe.x, bottomY, pipeWidth, height - bottomY - 22);
+    ctx.strokeRect(pipe.x, bottomY, pipeWidth, height - bottomY - 22);
+
+    ctx.fillStyle = '#8b5cf6';
+    ctx.fillRect(pipe.x - 6, pipe.top - 20, pipeWidth + 12, 20);
+    ctx.strokeRect(pipe.x - 6, pipe.top - 20, pipeWidth + 12, 20);
+    ctx.fillRect(pipe.x - 6, bottomY, pipeWidth + 12, 20);
+    ctx.strokeRect(pipe.x - 6, bottomY, pipeWidth + 12, 20);
+  }
+
+  function drawBird() {
+    ctx.save();
+    ctx.translate(bird.x, bird.y);
+    ctx.rotate(Math.max(-0.45, Math.min(0.7, bird.velocity / 700)));
+    ctx.font = '38px system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('💪', 0, 0);
+    ctx.restore();
+  }
+
+  function draw() {
+    drawBackground();
+    for (const pipe of pipes) drawPipe(pipe);
+    drawBird();
+  }
+
+  function update(delta) {
+    if (state !== 'playing') return;
+
+    bird.velocity += 1150 * delta;
+    bird.y += bird.velocity * delta;
+    spawnTimer += delta;
+    if (spawnTimer >= 1.65) {
+      spawnTimer = 0;
+      addPipe();
+    }
+
+    for (const pipe of pipes) {
+      pipe.x -= 175 * delta;
+      const overlapsX = bird.x + bird.radius > pipe.x && bird.x - bird.radius < pipe.x + pipeWidth;
+      if (overlapsX && (bird.y - bird.radius < pipe.top || bird.y + bird.radius > pipe.top + gap)) {
+        endGame();
+        return;
+      }
+      if (!pipe.scored && pipe.x + pipeWidth < bird.x) {
+        pipe.scored = true;
+        score++;
+        scoreElement.textContent = score;
+        playScoreSound();
+      }
+    }
+    while (pipes.length && pipes[0].x + pipeWidth < 0) pipes.shift();
+
+    if (bird.y - bird.radius < 0 || bird.y + bird.radius > height - 22) endGame();
+  }
+
+  function frame(timestamp) {
+    const delta = Math.min((timestamp - (lastTime || timestamp)) / 1000, 0.04);
+    lastTime = timestamp;
+    update(delta);
+    draw();
+    requestAnimationFrame(frame);
+  }
+
+  canvas.addEventListener('pointerdown', event => {
+    event.preventDefault();
+    flap();
+  });
+  playButton.addEventListener('click', () => {
+    playButtonSound();
+    start();
+  });
+  document.querySelector('header a').addEventListener('click', event => {
+    event.preventDefault();
+    playButtonSound();
+    const destination = event.currentTarget.href;
+    setTimeout(() => { location.href = destination; }, 150);
+  });
+  document.addEventListener('keydown', event => {
+    if (event.code !== 'Space' && event.code !== 'ArrowUp') return;
+    if (event.target.closest('a, input, textarea, select')) return;
+    event.preventDefault();
+    flap();
+  });
+
+  reset();
+  draw();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
