@@ -1,0 +1,19 @@
+{
+  "id": "./index.html",
+  "name": "Muscle Quest",
+  "short_name": "Muscle Quest",
+  "description": "Muscle anatomy quizzes and the Flappy Muscles minigame.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
