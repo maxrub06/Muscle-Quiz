@@ -1330,5 +1330,167 @@
   "f": "flexes the little toe",
   "r": "Foot",
   "v": "f"
+ },
+ {
+  "n": "Adductor minimus",
+  "f": "assists hip adduction and extension",
+  "r": "Thigh",
+  "v": "f"
+ },
+ {
+  "n": "Articularis cubiti",
+  "f": "pulls the elbow joint capsule away during extension",
+  "r": "Upper arm",
+  "v": "f"
+ },
+ {
+  "n": "Ceratocricoideus",
+  "f": "an accessory laryngeal muscle with a variable role in vocal movement",
+  "r": "Throat",
+  "v": "f"
+ },
+ {
+  "n": "Cremaster",
+  "f": "elevates and lowers the testes",
+  "r": "Pelvis",
+  "v": "f"
+ },
+ {
+  "n": "Extensor hallucis brevis",
+  "f": "extends the big toe at its base",
+  "r": "Foot",
+  "v": "f"
+ },
+ {
+  "n": "Innermost intercostal",
+  "f": "assists in depressing the ribs during forced expiration",
+  "r": "Chest",
+  "v": "f"
+ },
+ {
+  "n": "Levator glandulae thyroideae",
+  "f": "elevates the thyroid gland during swallowing",
+  "r": "Neck",
+  "v": "f"
+ },
+ {
+  "n": "Scalenus minimus",
+  "f": "when present, assists in elevating the first rib",
+  "r": "Neck",
+  "v": "f"
+ },
+ {
+  "n": "Scalenus posterior",
+  "f": "elevates the second rib and bends the neck laterally",
+  "r": "Neck",
+  "v": "f"
+ },
+ {
+  "n": "Sternalis",
+  "f": "a variable accessory muscle that may assist movement of the chest wall",
+  "r": "Chest",
+  "v": "f"
+ },
+ {
+  "n": "Superficial transverse perineal",
+  "f": "stabilizes the perineal body",
+  "r": "Pelvis",
+  "v": "f"
+ },
+ {
+  "n": "Compressor urethrae",
+  "f": "compresses the urethra",
+  "r": "Pelvis",
+  "v": "f"
+ },
+ {
+  "n": "Sphincter urethrae",
+  "f": "constricts the urethra to control urination",
+  "r": "Pelvis",
+  "v": "f"
+ },
+ {
+  "n": "Sphincter urethrovaginalis",
+  "f": "compresses the urethra and vagina",
+  "r": "Pelvis",
+  "v": "f"
+ },
+ {
+  "n": "Puboperinealis",
+  "f": "supports the pelvic floor and perineal body",
+  "r": "Pelvis",
+  "v": "f"
+ },
+ {
+  "n": "Chondroglossus",
+  "f": "depresses and retracts the tongue",
+  "r": "Mouth",
+  "v": "f"
+ },
+ {
+  "n": "Compressor naris",
+  "f": "compresses the nostrils",
+  "r": "Face",
+  "v": "f"
+ },
+ {
+  "n": "Dilator naris",
+  "f": "dilates the nostrils",
+  "r": "Face",
+  "v": "f"
+ },
+ {
+  "n": "Obliquus auriculae",
+  "f": "moves the auricle slightly",
+  "r": "Ear",
+  "v": "f"
+ },
+ {
+  "n": "Transversus auriculae",
+  "f": "moves the auricle slightly",
+  "r": "Ear",
+  "v": "f"
+ },
+ {
+  "n": "Helicis major",
+  "f": "moves the helix of the auricle",
+  "r": "Ear",
+  "v": "f"
+ },
+ {
+  "n": "Helicis minor",
+  "f": "moves the helix of the auricle",
+  "r": "Ear",
+  "v": "f"
+ },
+ {
+  "n": "Tragicus",
+  "f": "moves the tragus of the auricle",
+  "r": "Ear",
+  "v": "f"
+ },
+ {
+  "n": "Antitragicus",
+  "f": "moves the antitragus of the auricle",
+  "r": "Ear",
+  "v": "f"
+ },
+ {
+  "n": "Puboprostaticus",
+  "f": "supports the prostate and pelvic floor",
+  "r": "Pelvis",
+  "v": "f"
+ },
+ {
+  "n": "Pubovaginalis",
+  "f": "supports the vagina and pelvic floor",
+  "r": "Pelvis",
+  "v": "f"
+ },
+ {
+  "n": "Occipitofrontalis",
+  "f": "moves the scalp and raises the eyebrows",
+  "r": "Face",
+  "v": "f"
  }
 ]
