@@ -152,7 +152,7 @@ dialog::backdrop {
   <label for="showMinigames" class="flex cursor-pointer items-center justify-between gap-4 border-t border-slate-700 px-5 py-5">
     <span>
       <span class="block font-semibold">Study mode</span>
-      <span class="mt-1 block text-sm text-slate-400">Show or hide the minigame link on the home screen</span>
+      <span class="mt-1 block text-sm text-slate-400">Hide minigames from the home screen while studying</span>
     </span>
     <input id="showMinigames" type="checkbox" class="h-5 w-5 shrink-0 accent-amber-400">
   </label>
@@ -296,9 +296,9 @@ dialog::backdrop {
 
   buttonSounds.checked = soundsEnabled();
   gameSounds.checked = gameSoundsEnabled();
-  showMinigames.checked = minigamesVisible();
-  minigameCard.hidden = !showMinigames.checked;
-  muscarioCard.hidden = !showMinigames.checked;
+  showMinigames.checked = !minigamesVisible();
+  minigameCard.hidden = showMinigames.checked;
+  muscarioCard.hidden = showMinigames.checked;
   backgroundMusic.checked = musicEnabled();
   document.getElementById('settingsButton').addEventListener('click', () => settingsDialog.showModal());
   document.getElementById('closeSettings').addEventListener('click', () => settingsDialog.close());
@@ -311,9 +311,9 @@ dialog::backdrop {
     catch (error) { console.warn('Could not save the minigame sound setting:', error); }
   });
   showMinigames.addEventListener('change', () => {
-    minigameCard.hidden = !showMinigames.checked;
-    muscarioCard.hidden = !showMinigames.checked;
-    try { localStorage.setItem(minigamesSettingKey, String(showMinigames.checked)); }
+    minigameCard.hidden = showMinigames.checked;
+    muscarioCard.hidden = showMinigames.checked;
+    try { localStorage.setItem(minigamesSettingKey, String(!showMinigames.checked)); }
     catch (error) { console.warn('Could not save the minigame visibility setting:', error); }
   });
   backgroundMusic.addEventListener('change', () => {
