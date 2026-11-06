@@ -90,6 +90,7 @@ canvas.arena-canvas {
   const playerNameInput = document.getElementById('playerName');
   const statusElement = document.getElementById('status');
   const clickSound = new Audio('click.wav');
+  const growthEffect = new Audio('correct.wav');
   const soundSettingKey = 'mq_flappy_sounds';
   const apiUrl = new URL('api/muscario.php', location.href);
   const world = { width: 2800, height: 1900 };
@@ -124,6 +125,7 @@ canvas.arena-canvas {
   let heartbeatTimer = null;
   let networkBusy = false;
   let networkErrorShown = false;
+  let nextGrowthSoundTime = 0;
 
   function soundsEnabled() {
     try { return localStorage.getItem(soundSettingKey) !== 'false'; }
@@ -140,6 +142,37 @@ canvas.arena-canvas {
       clickSound.play().catch(error => console.warn('Could not play the button sound:', error));
     } catch (error) {
       console.warn('Could not play the button sound:', error);
+    }
+  }
+
+  function playGrowthEffect() {
+    try {
+      growthEffect.currentTime = 0;
+      growthEffect.play().catch(error => console.warn('Could not play the Muscario growth sound:', error));
+    } catch (error) {
+      console.warn('Could not play the Muscario growth sound:', error);
+    }
+  }
+
+  function playGrowthSound() {
+    if (!soundsEnabled() || Date.now() < nextGrowthSoundTime) return;
+    nextGrowthSoundTime = Date.now() + 1800;
+
+    if (!window.speechSynthesis || typeof window.SpeechSynthesisUtterance !== 'function') {
+      playGrowthEffect();
+      return;
+    }
+
+    const announcement = new window.SpeechSynthesisUtterance('My muscles are getting bigger!');
+    announcement.onerror = event => {
+      console.warn('Could not speak the Muscario growth line:', event.error);
+      playGrowthEffect();
+    };
+    try {
+      window.speechSynthesis.speak(announcement);
+    } catch (error) {
+      console.warn('Could not speak the Muscario growth line:', error);
+      playGrowthEffect();
     }
   }
 
@@ -180,6 +213,7 @@ canvas.arena-canvas {
     if (networkBusy) return;
     networkBusy = true;
     try {
+      const submittedMass = Math.round(player.mass * 100) / 100;
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -189,7 +223,7 @@ canvas.arena-canvas {
           name: player.name,
           x: Math.round(player.x * 100) / 100,
           y: Math.round(player.y * 100) / 100,
-          mass: Math.round(player.mass * 100) / 100
+          mass: submittedMass
         }),
         cache: 'no-store'
       });
@@ -204,7 +238,11 @@ canvas.arena-canvas {
 
       networkErrorShown = false;
       const currentPlayer = result.players.find(other => other.id === player.id);
-      if (currentPlayer) player.mass = Number(currentPlayer.mass);
+      if (currentPlayer) {
+        const serverMass = Number(currentPlayer.mass);
+        if (serverMass > submittedMass + 0.01) playGrowthSound();
+        player.mass = serverMass;
+      }
       onlinePlayers = result.players.filter(other => other.id !== player.id);
       onlineCountElement.textContent = String(result.players.length);
       statusElement.textContent = result.players.length === 1
@@ -513,6 +551,7 @@ canvas.arena-canvas {
       if (Math.hypot(player.x - bot.x, player.y - bot.y) >= player.radius + bot.radius - Math.min(player.radius, bot.radius) * 0.45) continue;
       if (player.radius > bot.radius * 1.12) {
         player.mass = Math.min(10000, player.mass + bot.mass * 0.8);
+        playGrowthSound();
         bots.splice(index, 1);
       } else if (bot.radius > player.radius * 1.12) {
         finishGame();
