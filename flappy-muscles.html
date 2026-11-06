@@ -29,7 +29,6 @@ canvas { touch-action: manipulation; }
     <p id="message" class="mt-3 min-h-10 text-center text-sm text-slate-300" aria-live="polite">Tap the game or press Space to start.</p>
   </section>
 
-  <p class="mt-4 text-center text-xs text-slate-500">Tap, click, press Space, or press ↑ to flap.</p>
 </main>
 <script>
 (() => {
@@ -44,11 +43,13 @@ canvas { touch-action: manipulation; }
   const pipes = [];
   const gap = 166;
   const pipeWidth = 66;
+  const demoMode = new URLSearchParams(location.search).get('demo') === '999';
   let state = 'ready';
   let score = 0;
   let best = 0;
   let lastTime = 0;
   let spawnTimer = 0;
+  let boss = null;
   let audioContext = null;
   const clickSound = new Audio('click.wav');
 
@@ -138,6 +139,7 @@ canvas { touch-action: manipulation; }
     pipes.length = 0;
     score = 0;
     spawnTimer = 0;
+    boss = null;
     addPipe(width - 115);
     scoreElement.textContent = score;
   }
@@ -164,11 +166,11 @@ canvas { touch-action: manipulation; }
     pipes.push({ x, top, scored: false });
   }
 
-  function endGame() {
+  function endGame(message = `Game over! You scored ${score}. Tap the game or press Space to try again.`) {
     state = 'over';
     playCrashSound();
-    messageElement.textContent = `Game over! You scored ${score}. Tap the game or press Space to try again.`;
-    if (score > best) {
+    messageElement.textContent = message;
+    if (!demoMode && score > best) {
       best = score;
       bestElement.textContent = best;
       try {
@@ -222,6 +224,27 @@ canvas { touch-action: manipulation; }
     ctx.strokeRect(pipe.x - 6, bottomY, pipeWidth + 12, 20);
   }
 
+  function drawBoss() {
+    if (!boss) return;
+    const x = Math.round(boss.x);
+    const y = Math.round(boss.y);
+    const pixel = 8;
+    const blocks = [
+      [2, 0, 1, 1, '#c4b5fd'], [5, 0, 1, 1, '#c4b5fd'],
+      [1, 1, 1, 1, '#7c3aed'], [2, 1, 4, 1, '#a78bfa'], [6, 1, 1, 1, '#7c3aed'],
+      [0, 2, 2, 2, '#6d28d9'], [2, 2, 4, 3, '#4c1d95'], [6, 2, 2, 2, '#6d28d9'],
+      [1, 2, 1, 1, '#67e8f9'], [6, 2, 1, 1, '#67e8f9'],
+      [1, 4, 1, 1, '#a78bfa'], [6, 4, 1, 1, '#a78bfa'],
+      [2, 5, 1, 1, '#7c3aed'], [3, 5, 2, 1, '#c4b5fd'], [5, 5, 1, 1, '#7c3aed'],
+      [1, 6, 2, 1, '#312e81'], [5, 6, 2, 1, '#312e81'],
+      [1, 7, 2, 1, '#67e8f9'], [5, 7, 2, 1, '#67e8f9']
+    ];
+    for (const [column, row, columns, rows, color] of blocks) {
+      ctx.fillStyle = color;
+      ctx.fillRect(x + column * pixel, y + row * pixel, columns * pixel, rows * pixel);
+    }
+  }
+
   function drawBird() {
     ctx.save();
     ctx.translate(bird.x, bird.y);
@@ -237,9 +260,19 @@ canvas { touch-action: manipulation; }
     drawBackground();
     for (const pipe of pipes) drawPipe(pipe);
     drawBird();
+    drawBoss();
   }
 
   function update(delta) {
+    if (state === 'boss') {
+      boss.elapsed += delta;
+      boss.x -= 280 * delta;
+      if (boss.x <= bird.x + 13) {
+        bird.x -= 16;
+        endGame('A pixel boss got you at level 999! Tap the game or press Space to try again.');
+      }
+      return;
+    }
     if (state !== 'playing') return;
 
     bird.velocity += 1150 * delta;
@@ -262,6 +295,12 @@ canvas { touch-action: manipulation; }
         score++;
         scoreElement.textContent = score;
         playScoreSound();
+        if (score === 999) {
+          state = 'boss';
+          boss = { x: width + 48, y: Math.max(32, Math.min(height - 96, bird.y - 32)), elapsed: 0 };
+          messageElement.textContent = 'Level 999... something is coming!';
+          return;
+        }
       }
     }
     while (pipes.length && pipes[0].x + pipeWidth < 0) pipes.shift();
@@ -295,6 +334,13 @@ canvas { touch-action: manipulation; }
   });
 
   reset();
+  if (demoMode) {
+    score = 999;
+    scoreElement.textContent = score;
+    state = 'boss';
+    boss = { x: width + 80, y: bird.y - 32, elapsed: 0 };
+    messageElement.textContent = 'Level 999... something is coming!';
+  }
   draw();
   requestAnimationFrame(frame);
 })();
