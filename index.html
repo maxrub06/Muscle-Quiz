@@ -153,8 +153,7 @@ dialog::backdrop {
     <input id="backgroundMusic" type="checkbox" class="h-5 w-5 shrink-0 accent-amber-400">
   </label>
   <div class="border-t border-slate-700 px-5 py-4">
-    <button id="installApp" type="button" class="w-full rounded-xl bg-amber-400 px-4 py-3 text-sm font-bold text-slate-900 transition hover:bg-amber-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200">Download app</button>
-    <p id="installMessage" class="mt-2 text-center text-xs text-slate-400" aria-live="polite">Install options depend on your browser. HTTPS or localhost is required.</p>
+    <button id="installApp" type="button" disabled class="w-full rounded-xl bg-amber-400 px-4 py-3 text-sm font-bold text-slate-900 transition hover:bg-amber-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200 disabled:cursor-not-allowed disabled:opacity-50">Ready to install Muscle Quest</button>
   </div>
 </dialog>
 <script>
@@ -168,7 +167,6 @@ dialog::backdrop {
   const backgroundMusic = document.getElementById('backgroundMusic');
   const musicStatus = document.getElementById('musicStatus');
   const installButton = document.getElementById('installApp');
-  const installMessage = document.getElementById('installMessage');
   const soundSettingKey = 'mq_button_sounds';
   const gameSoundSettingKey = 'mq_flappy_sounds';
   const minigamesSettingKey = 'mq_show_minigames';
@@ -316,28 +314,24 @@ dialog::backdrop {
   window.addEventListener('beforeinstallprompt', event => {
     event.preventDefault();
     installPrompt = event;
-    installMessage.textContent = 'Ready to install Muscle Quest.';
+    installButton.disabled = false;
   });
   window.addEventListener('appinstalled', () => {
     installPrompt = null;
     installButton.disabled = true;
-    installButton.textContent = 'Installed';
-    installMessage.textContent = 'Muscle Quest has been installed.';
   });
   installButton.addEventListener('click', async () => {
-    if (!installPrompt) {
-      installMessage.textContent = location.protocol === 'https:' || location.hostname === 'localhost'
-        ? 'Use your browser menu and choose “Install app” or “Add to Home Screen”.'
-        : 'To install, open this site over HTTPS or localhost, then choose “Install app” in your browser menu.';
-      return;
-    }
+    if (!installPrompt) return;
 
-    installPrompt.prompt();
-    const choice = await installPrompt.userChoice;
+    const prompt = installPrompt;
     installPrompt = null;
-    installMessage.textContent = choice.outcome === 'accepted'
-      ? 'Muscle Quest is installing.'
-      : 'Installation cancelled.';
+    installButton.disabled = true;
+    try {
+      prompt.prompt();
+      await prompt.userChoice;
+    } catch (error) {
+      console.error('Could not show the app install prompt:', error);
+    }
   });
   settingsDialog.addEventListener('click', event => {
     if (event.target === settingsDialog) settingsDialog.close();
