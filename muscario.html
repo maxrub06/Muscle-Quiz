@@ -9,24 +9,47 @@
 <style>
 html, body { min-height: 100%; }
 body { background-image: radial-gradient(ellipse at 50% 0%, rgb(167 139 250 / 12%), transparent 48%); }
+main.game-layout {
+  display: flex;
+  height: 100vh;
+  height: 100dvh;
+  flex-direction: column;
+}
+section.arena-panel {
+  display: flex;
+  min-height: 0;
+  flex: 0.9;
+  flex-direction: column;
+}
+.arena-canvas-wrap {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+}
 canvas { touch-action: none; }
+canvas.arena-canvas {
+  min-height: 0;
+  height: 0;
+  flex: 1;
+}
 </style>
 </head>
 <body class="min-h-screen bg-slate-900 text-slate-100">
-<main class="mx-auto max-w-3xl p-4 sm:p-6">
-  <header class="mb-5 flex items-center justify-between">
+<main class="game-layout mx-auto max-w-md p-4">
+  <header class="mb-6 flex items-center justify-between">
     <a href="index.html" class="text-sm text-slate-400 transition hover:text-white">← Quit</a>
     <span class="rounded-full bg-violet-500/15 px-3 py-1 text-xs font-bold uppercase tracking-wider text-violet-300">Minigame</span>
   </header>
 
-  <section class="rounded-2xl border border-slate-700 bg-slate-800 p-3 shadow-xl shadow-black/20" aria-label="Muscario arena">
+  <section class="arena-panel mt-2 rounded-2xl border border-slate-700 bg-slate-800 p-3 shadow-xl shadow-black/20" aria-label="Muscario arena">
     <div class="mb-3 flex items-center justify-between px-1 text-sm">
       <span class="text-slate-400">Muscle mass <strong id="mass" class="ml-1 text-lg text-white">12</strong></span>
       <span class="text-slate-400">Players <strong id="onlineCount" class="ml-1 text-lg text-sky-300">0</strong></span>
       <span class="text-slate-400">Best <strong id="best" class="ml-1 text-lg text-amber-300">12</strong></span>
     </div>
-    <div class="relative overflow-hidden rounded-xl border border-slate-700 bg-slate-950">
-      <canvas id="arena" class="block h-[min(64vh,560px)] min-h-[320px] w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400" tabindex="0" role="img" aria-label="Muscario game arena. Use arrow keys or WASD, or point and hold on the arena to move. Eat protein orbs and smaller muscles."></canvas>
+    <div class="arena-canvas-wrap relative overflow-hidden rounded-xl border border-slate-700 bg-slate-950">
+      <canvas id="arena" class="arena-canvas block w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400" tabindex="0" role="img" aria-label="Muscario game arena. Use arrow keys or WASD, or point and hold on the arena to move. Eat protein orbs and smaller muscles."></canvas>
       <div id="overlay" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/75 px-6 text-center">
         <p id="overlayTitle" class="text-3xl font-extrabold text-white">Get swole!</p>
         <p id="overlayMessage" class="mt-2 max-w-sm text-sm text-slate-300">Play live against people in the shared online arena. Eat protein and smaller muscles to grow.</p>
@@ -37,8 +60,10 @@ canvas { touch-action: none; }
     </div>
     <p id="status" class="mt-3 min-h-10 text-center text-sm text-slate-300" aria-live="polite">Join the online arena, then invite other players to meet you there.</p>
   </section>
+</main>
 
-  <section class="mt-4 rounded-2xl border border-slate-700 bg-slate-800/80 p-4" aria-labelledby="rankHeading">
+<main class="mx-auto max-w-md px-4 pb-4 sm:px-6 sm:pb-6">
+  <section class="rounded-2xl border border-slate-700 bg-slate-800/80 p-4" aria-labelledby="rankHeading">
     <div class="mb-3 flex items-center justify-between">
       <h2 id="rankHeading" class="font-bold">Arena leaders</h2>
       <span class="text-xs text-slate-500">Eat smaller players · Run from bigger ones</span>
