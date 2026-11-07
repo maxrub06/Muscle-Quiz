@@ -196,6 +196,18 @@ canvas {
     messageElement.textContent = 'Flap through the gaps!';
   }
 
+  function saveBestScore() {
+    if (demoMode || score <= best) return;
+    best = score;
+    bestElement.textContent = best;
+    try {
+      localStorage.setItem('flappyMusclesBest', String(best));
+    } catch (error) {
+      console.warn('Could not save the Flappy Muscles best score:', error);
+    }
+    if (score >= 10) awardBadge('flappy_10');
+  }
+
   function flap() {
     if (state !== 'playing') {
       start();
@@ -214,16 +226,7 @@ canvas {
     state = 'over';
     playCrashSound();
     messageElement.textContent = message;
-    if (!demoMode && score > best) {
-      best = score;
-      bestElement.textContent = best;
-      try {
-        localStorage.setItem('flappyMusclesBest', String(best));
-      } catch (error) {
-        console.warn('Could not save the Flappy Muscles best score:', error);
-      }
-      if (score >= 10) awardBadge('flappy_10');
-    }
+    saveBestScore();
   }
 
   function drawBackground() {
@@ -370,6 +373,7 @@ canvas {
   document.querySelector('header a').addEventListener('click', event => {
     event.preventDefault();
     playButtonSound();
+    saveBestScore();
     const destination = event.currentTarget.href;
     setTimeout(() => { location.href = destination; }, 150);
   });

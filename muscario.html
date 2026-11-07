@@ -286,6 +286,7 @@ canvas:focus-visible {
   const statusElement = document.getElementById('status');
   const clickSound = new Audio('click.wav');
   const growthEffect = new Audio('correct.wav');
+  const deathSound = new Audio('fail.wav');
   const soundSettingKey = 'mq_flappy_sounds';
   const SpeechSynthesisUtterance = window.SpeechSynthesisUtterance;
   const apiUrl = new URL('api/muscario.php', location.href);
@@ -351,6 +352,16 @@ canvas:focus-visible {
       growthEffect.play().catch(error => console.warn('Could not play the Muscario growth sound:', error));
     } catch (error) {
       console.warn('Could not play the Muscario growth sound:', error);
+    }
+  }
+
+  function playDeathSound() {
+    if (!soundsEnabled()) return;
+    try {
+      deathSound.currentTime = 0;
+      deathSound.play().catch(error => console.warn('Could not play the Muscario death sound:', error));
+    } catch (error) {
+      console.warn('Could not play the Muscario death sound:', error);
     }
   }
 
@@ -630,6 +641,7 @@ canvas:focus-visible {
   function finishGame() {
     if (state !== 'playing') return;
     state = 'over';
+    playDeathSound();
     if (heartbeatTimer !== null) {
       clearInterval(heartbeatTimer);
       heartbeatTimer = null;
