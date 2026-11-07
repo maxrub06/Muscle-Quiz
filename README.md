@@ -15,6 +15,8 @@ Quiz results, achievements, daily streaks, minigame records, and settings are ot
 
 The public leaderboard accepts anonymous, self-reported quiz scores. The API validates names, levels, and score ranges, but without user accounts or server-side quiz sessions it cannot prevent someone from submitting a fabricated score.
 
+For an existing Muscario database, run [`muscario-growth-migration.sql`](./muscario-growth-migration.sql) to remove the previous growth limit.
+
 ## Muscario online multiplayer
 
 Muscario uses `api/muscario.php` to share player positions and mass in one live arena. When online, it polls the PHP/MySQL server once per second; active players can see and eat one another, while inactive player records are removed after a day. The arena requires the site to be uploaded to the PHP-enabled HTTPS hosting above and the full database schema to be installed. Open the hosted game in two different browser profiles or devices to verify multiplayer. It does not connect players when opened directly as a local file.

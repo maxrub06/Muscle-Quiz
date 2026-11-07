@@ -40,7 +40,7 @@ function muscarioConnectDatabase($config)
 
 function muscarioRadius($mass)
 {
-    return min(98, 17 + sqrt($mass) * 2.5);
+    return 17 + sqrt($mass) * 2.5;
 }
 
 function muscarioColor($id)
@@ -99,7 +99,7 @@ $x = isset($entry['x']) && is_numeric($entry['x']) ? (float) $entry['x'] : -1;
 $y = isset($entry['y']) && is_numeric($entry['y']) ? (float) $entry['y'] : -1;
 $mass = isset($entry['mass']) && is_numeric($entry['mass']) ? (float) $entry['mass'] : -1;
 if (!is_finite($x) || !is_finite($y) || !is_finite($mass) ||
-    $x < 0 || $x > 2800 || $y < 0 || $y > 1900 || $mass < 12 || $mass > 10000) {
+    $x < 0 || $x > 2800 || $y < 0 || $y > 1900 || $mass < 12) {
     muscarioRespond(422, ['error' => 'Player position or muscle mass is invalid.']);
 }
 
@@ -165,7 +165,7 @@ try {
         }
 
         if ($ownRadius > $otherRadius * 1.12) {
-            $currentMass = min(10000, $currentMass + $otherMass * 0.8);
+            $currentMass += $otherMass * 0.8;
             $players[$ownIndex]['mass'] = $currentMass;
             $players[$index]['alive'] = 0;
             $statement = $database->prepare(
@@ -175,7 +175,7 @@ try {
         } elseif ($otherRadius > $ownRadius * 1.12) {
             $currentMass = 0;
             $players[$ownIndex]['alive'] = 0;
-            $players[$index]['mass'] = min(10000, $otherMass + (float) $players[$ownIndex]['mass'] * 0.8);
+            $players[$index]['mass'] = $otherMass + (float) $players[$ownIndex]['mass'] * 0.8;
             $statement = $database->prepare(
                 'UPDATE muscario_players SET alive = 0 WHERE player_id = :id AND alive = 1'
             );

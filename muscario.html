@@ -509,7 +509,7 @@ canvas:focus-visible {
   }
 
   function radiusFor(mass) {
-    return Math.min(98, 17 + Math.sqrt(mass) * 2.5);
+    return 17 + Math.sqrt(mass) * 2.5;
   }
 
   function randomBetween(min, max) {
@@ -803,7 +803,7 @@ canvas:focus-visible {
       for (let foodIndex = foods.length - 1; foodIndex >= 0; foodIndex--) {
         const food = foods[foodIndex];
         if (Math.hypot(bot.x - food.x, bot.y - food.y) >= bot.radius + food.radius) continue;
-        bot.mass = Math.min(10000, bot.mass + food.mass);
+        bot.mass += food.mass;
         bot.radius = radiusFor(bot.mass);
         foods.splice(foodIndex, 1);
       }
@@ -816,13 +816,13 @@ canvas:focus-visible {
         const distance = Math.hypot(bot.x - other.x, bot.y - other.y);
         if (distance >= bot.radius + other.radius - Math.min(bot.radius, other.radius) * 0.45) continue;
         if (bot.mass > other.mass) {
-          bot.mass = Math.min(10000, bot.mass + other.mass * 0.8);
+          bot.mass += other.mass * 0.8;
           bot.radius = radiusFor(bot.mass);
           bots.splice(otherIndex, 1);
           continue;
         }
         if (other.mass > bot.mass) {
-          other.mass = Math.min(10000, other.mass + bot.mass * 0.8);
+          other.mass += bot.mass * 0.8;
           other.radius = radiusFor(other.mass);
           bots.splice(botIndex, 1);
           break;
@@ -835,7 +835,7 @@ canvas:focus-visible {
     for (let index = foods.length - 1; index >= 0; index--) {
       const food = foods[index];
       if (Math.hypot(player.x - food.x, player.y - food.y) < player.radius + food.radius) {
-        player.mass = Math.min(10000, player.mass + food.mass);
+        player.mass += food.mass;
         playEatSound();
         foods.splice(index, 1);
       }
@@ -846,7 +846,7 @@ canvas:focus-visible {
       const bot = bots[index];
       if (Math.hypot(player.x - bot.x, player.y - bot.y) >= player.radius + bot.radius - Math.min(player.radius, bot.radius) * 0.45) continue;
       if (player.radius > bot.radius * 1.12) {
-        player.mass = Math.min(10000, player.mass + bot.mass * 0.8);
+        player.mass += bot.mass * 0.8;
         playEatSound();
         scheduleGrowthSound();
         bots.splice(index, 1);
