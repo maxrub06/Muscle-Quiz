@@ -935,6 +935,7 @@ canvas:focus-visible {
   document.querySelector('header a').addEventListener('click', event => {
     event.preventDefault();
     playButtonSound();
+    saveBest();
     const destination = event.currentTarget.href;
     setTimeout(() => { location.href = destination; }, 120);
   });
